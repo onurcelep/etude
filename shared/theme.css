@@ -1,0 +1,43 @@
+/* Etude shared design system (light "Studio" / dark "Console").
+   Every tool links this so the suite stays visually consistent. */
+:root{
+  --paper:#f6f6f7; --card:#ffffff; --paper-2:#eef0f2;
+  --ink:#101114; --mut:#83868c; --faint:#a9acb2;
+  --line:#e7e8ea; --line-2:#d7d9dc;
+  --accent:#2f5fe0; --accent-2:#244fc4; --accent-soft:rgba(47,95,224,.10);
+  --r:11px; --r-sm:7px;
+  --mono:"SFMono-Regular",ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,"Courier New",monospace;
+  --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+}
+[data-theme="dark"]{
+  --paper:#121114; --card:#1a191e; --paper-2:#24222b;
+  --ink:#eeecef; --mut:#918e98; --faint:#6a6772;
+  --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.18);
+  --accent:#e6a94a; --accent-2:#f0b95e; --accent-soft:rgba(230,169,74,.15);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font:14px/1.6 var(--ui);color:var(--ink);background:var(--paper);
+     -webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent-soft)}
+
+.mono{font-family:var(--mono)}
+.mut{color:var(--mut)}
+
+/* wordmark */
+.brand{display:inline-flex;align-items:center;gap:9px}
+.brand .rep{color:var(--accent);font-size:18px;line-height:1}
+.brand .title{letter-spacing:.24em;font-size:15px;font-weight:600;color:var(--accent)}
+
+/* buttons */
+.btn{font:inherit;font-size:13px;cursor:pointer;color:var(--ink);background:transparent;
+     border:1px solid var(--line-2);border-radius:var(--r-sm);padding:8px 14px;
+     transition:border-color .12s,background .12s,color .12s}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+.btn.primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
+.icon-btn{border:none;background:transparent;padding:6px;border-radius:var(--r-sm);
+     color:var(--mut);cursor:pointer;line-height:1}
+.icon-btn:hover{background:var(--paper-2);color:var(--ink)}

@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Etude · loop, slow down, transpose</title>
+<meta name="description" content="Loop, slow down, and transpose your own audio & video to practice. Private and offline, right in your browser." />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#f6f6f7" id="themeColor" />
+<script>/* set theme before paint to avoid a flash */try{var _t=localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Etude" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<style>
+  /* Modern minimal. Light "Studio" (blue accent) ⇄ dark "Console" (amber). Sans UI, mono for data. */
+  :root{
+    --paper:#f6f6f7; --card:#ffffff; --paper-2:#eef0f2;
+    --ink:#101114; --mut:#83868c; --faint:#a9acb2;
+    --line:#e7e8ea; --line-2:#d7d9dc;
+    --accent:#2f5fe0; --accent-2:#244fc4; --accent-soft:rgba(47,95,224,.10);
+    --r:11px; --r-sm:7px;
+    --mono:"SFMono-Regular",ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,"Courier New",monospace;
+    --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+  }
+  [data-theme="dark"]{
+    --paper:#121114; --card:#1a191e; --paper-2:#24222b;
+    --ink:#eeecef; --mut:#918e98; --faint:#6a6772;
+    --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.18);
+    --accent:#e6a94a; --accent-2:#f0b95e; --accent-soft:rgba(230,169,74,.15);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font:13.5px/1.55 var(--ui);color:var(--ink);background:var(--paper);-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+  ::selection{background:var(--accent-soft)}
+  button{font:inherit;cursor:pointer;border:1px solid var(--line-2);background:transparent;color:var(--ink);border-radius:var(--r-sm);padding:7px 12px;transition:background .12s,border-color .12s,color .12s}
+  button:hover{border-color:var(--accent)}
+  button.icon{border:none;background:transparent;padding:6px;border-radius:var(--r-sm);font-size:14px;line-height:1;color:var(--mut)}
+  button.icon:hover{background:var(--paper-2);color:var(--ink)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+  button.primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
+  button.on{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+  .tog,.mini{padding:5px 10px;font-size:12px;letter-spacing:.01em}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;background:var(--line-2);flex:1;min-width:110px;outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--accent);border:2px solid var(--card);box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:grab;transition:transform .1s}
+  input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+  input[type=number],input[type=text]{background:var(--card);border:1px solid var(--line-2);border-radius:var(--r-sm);color:var(--ink);padding:6px 8px;font-family:var(--mono)}
+  input:focus{outline:none;border-color:var(--accent)}
+  .grow{flex:1}
+  .mut{color:var(--mut)}
+  .langsel{font-family:var(--mono);font-size:12px;color:var(--mut);background:transparent;border:1px solid var(--line-2);border-radius:var(--r-sm);padding:6px 7px;cursor:pointer}
+  .langsel:hover,.langsel:focus{outline:none;border-color:var(--accent)}
+
+  #app{position:relative;min-height:100vh}
+  /* saved-sessions list (inside the modal) */
+  #histList{max-height:min(60vh,440px);overflow:auto;margin:0 -6px}
+  .hist{padding:10px 12px;border-radius:var(--r-sm);cursor:pointer;border:1px solid transparent;margin-bottom:2px;transition:background .12s}
+  .hist:hover{background:var(--paper-2)}
+  .hist .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:34px}
+  .hist .meta{font-size:11px;color:var(--mut);display:flex;gap:10px;margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
+  .hist .del,.hist .ren{float:right;color:var(--mut);font-size:14px;padding:2px}
+  .hist .ren{margin-right:8px}
+  .hist .del:hover,.hist .ren:hover{color:var(--accent)}
+  .empty{color:var(--mut);font-size:12px;padding:12px;line-height:1.6}
+
+  /* main */
+  main{display:flex;flex-direction:column;min-height:100vh}
+  .topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;flex-wrap:wrap;gap:10px 12px;padding:14px 24px;background:color-mix(in srgb,var(--paper) 85%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .brand{display:inline-flex;align-items:center;gap:9px;cursor:pointer;color:var(--accent)}
+  .brand .mark{width:13px;height:22px;color:var(--accent);flex:none}
+  .coffee{display:inline-flex;align-items:center;gap:7px;color:var(--mut);text-decoration:none;border:1px solid var(--line-2);border-radius:var(--r-sm);padding:6px 12px;font-size:12px}
+  .coffee:hover{color:var(--accent);border-color:var(--accent)}
+  .coffee:hover{color:var(--accent);border-color:var(--accent)}
+  .coffee svg{width:16px;height:16px}
+  .topbar .title{letter-spacing:.18em;font-size:13px;font-weight:600}
+  .tagline{color:var(--mut);font-size:11px;letter-spacing:.03em;border-left:1px solid var(--line-2);padding-left:13px;margin-left:5px}
+  @media (max-width:900px){ .tagline{display:none} }
+  /* sub-app breadcrumb next to the Etude wordmark: Etude │ Looper  a looping practice tool */
+  .subapp{display:inline-flex;align-items:baseline;gap:9px;color:var(--ink);font-size:13px;font-weight:600;letter-spacing:.03em;
+          border-left:1px solid var(--line-2);padding-left:13px;margin-left:9px}
+  .subapp .subdesc{color:var(--mut);font-weight:400;font-size:11.5px;letter-spacing:.02em}
+  @media (max-width:820px){ .subapp .subdesc{display:none} }
+  @media (max-width:460px){ .subapp{display:none} }
+  .wrap{max-width:1200px;width:100%;margin:0 auto;padding:26px 24px}
+  .workspace{display:flex;flex-direction:column;gap:16px}
+  .center,.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .player{min-width:0}
+  #drop{border:1px dashed var(--line-2);border-radius:var(--r);height:150px;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mut);cursor:pointer;transition:.15s;font-size:12.5px;letter-spacing:.03em}
+  #drop:hover{border-color:var(--mut);color:var(--mut)}
+  #drop.hover{border-color:var(--accent);color:var(--accent)}
+  video{width:100%;max-height:54vh;background:#000;border-radius:var(--r);display:none}
+  video.show{display:block}
+  .vwrap{position:relative}
+  .vwrap:fullscreen{background:#000;display:flex;align-items:center;justify-content:center}
+  .vwrap:fullscreen video{max-height:100vh;height:100%;width:100%;object-fit:contain;border-radius:0}
+  .vwrap:-webkit-full-screen{background:#000}
+  .vwrap:-webkit-full-screen video{max-height:100vh;height:100%;width:100%;object-fit:contain;border-radius:0}
+  .voverlay{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:8px;opacity:0;transition:opacity .15s;pointer-events:none}
+  .vwrap:hover .voverlay{opacity:1}
+  @media (hover:none){ .voverlay{display:none} }   /* touch devices: no sticky-hover overlay; use the Loops card */
+  #v:not(.show) ~ .voverlay{display:none}
+  /* audio-only files: no black box, an elegant panel with a little equaliser */
+  #audioArt{display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;height:200px;
+            background:linear-gradient(180deg,var(--card),var(--paper-2));border:1px solid var(--line);border-radius:var(--r)}
+  #vwrap.audio video{display:none}
+  #vwrap.audio .voverlay{display:none}
+  #vwrap.audio #audioArt{display:flex}
+  #audioArt .wave{display:flex;align-items:center;gap:5px;height:44px}
+  #audioArt .wave span{width:5px;background:var(--accent);border-radius:3px;opacity:.9}
+  #audioArt .wave span:nth-child(1),#audioArt .wave span:nth-child(5){height:12px}   /* small → big → small, centred */
+  #audioArt .wave span:nth-child(2),#audioArt .wave span:nth-child(4){height:20px}
+  #audioArt .wave span:nth-child(3){height:28px}
+  /* minimal, calm breath that scales from the centre and ripples out from the peak */
+  #vwrap.audio.playing #audioArt .wave span{animation:breathe 2.4s ease-in-out infinite}
+  #vwrap.audio.playing #audioArt .wave span:nth-child(3){animation-delay:0s}
+  #vwrap.audio.playing #audioArt .wave span:nth-child(2),#vwrap.audio.playing #audioArt .wave span:nth-child(4){animation-delay:.16s}
+  #vwrap.audio.playing #audioArt .wave span:nth-child(1),#vwrap.audio.playing #audioArt .wave span:nth-child(5){animation-delay:.32s}
+  @keyframes breathe{0%,100%{transform:scaleY(.9)}50%{transform:scaleY(1.1)}}
+  #audioArt .anm{font-size:13px;color:var(--mut);letter-spacing:.03em;max-width:80%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  @media (prefers-reduced-motion:reduce){#audioArt .wave span{animation:none!important}}
+  .ovbtn{pointer-events:auto;background:rgba(24,18,12,.6);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:7px 13px;font:inherit;font-size:12.5px;letter-spacing:.02em;cursor:pointer;backdrop-filter:blur(6px);transition:background .12s}
+  .ovbtn:hover{background:rgba(24,18,12,.82)}
+  .ovloop{padding:6px 11px;font-size:16px;line-height:1}
+  .ovloop.on{background:var(--accent);border-color:var(--accent)}
+
+  /* timeline: a clean thicker rail with draggable A/B brackets */
+  #bar{position:relative;height:24px;border-radius:6px;margin:24px 0 6px;cursor:pointer;
+       background:color-mix(in srgb,var(--ink) 7%,transparent);border:1px solid var(--line)}
+  #bar:hover{box-shadow:0 0 0 1px var(--line-2)}
+  #played{position:absolute;left:0;top:0;height:100%;pointer-events:none;border-radius:6px 0 0 6px;
+          background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--ink) 10%,transparent))}
+  #played::after{content:"";position:absolute;right:0;top:-3px;bottom:-3px;width:2px;background:var(--accent);box-shadow:0 0 6px var(--accent)}   /* playhead */
+  #region{position:absolute;top:0;height:100%;pointer-events:none;background:var(--accent-soft);border-radius:3px;display:none}   /* faint loop span */
+  #region.active{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+  /* draggable A / B position dots (inlay-dot look) */
+  .handle{position:absolute;top:50%;width:10px;height:10px;border-radius:50%;transform:translate(-50%,-50%);
+          background:var(--accent);border:1.5px solid var(--card);box-shadow:0 0 0 1px var(--accent);
+          cursor:ew-resize;touch-action:none;z-index:3;display:none}
+  .handle::before{content:"";position:absolute;inset:-11px;border-radius:50%}   /* larger invisible grab area for touch */
+  .handle:hover,.handle.drag{background:var(--accent-2)}
+  .handle.pulse{animation:dotPulse .5s ease}
+  @keyframes dotPulse{0%{box-shadow:0 0 0 1px var(--accent),0 0 0 0 var(--accent-soft)}
+                      45%{box-shadow:0 0 0 1px var(--accent),0 0 0 7px var(--accent-soft)}
+                      100%{box-shadow:0 0 0 1px var(--accent),0 0 0 0 transparent}}
+  @media (prefers-reduced-motion:reduce){.handle.pulse{animation:none}}
+  /* sections track below the timeline (lane-stacked so overlaps don't collide) */
+  #track{position:relative;margin:0 0 8px;display:none}
+  .seg-bar{position:absolute;height:16px;background:var(--accent-soft);border:1px solid var(--accent);border-radius:4px;font-size:10px;line-height:14px;color:var(--accent-2);padding:0 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer;box-sizing:border-box;letter-spacing:.02em}
+  .seg-bar:hover{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+  .seg-bar.active{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+  .seg-bar.active:hover{background:var(--accent-2)}
+  .timeRow{display:flex;align-items:center;color:var(--mut);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em}
+  .vol{display:flex;align-items:center;gap:8px}
+  .vol .icon svg{width:22px;height:22px;display:block}
+  video{cursor:pointer}
+  #muteBtn.muted{color:var(--accent)}
+  .volrange{flex:none;width:92px;min-width:0}
+
+  .transport{display:flex;align-items:center;gap:6px;margin:18px 0 6px}
+  .transport .play{width:46px;height:46px;border-radius:50%;background:var(--accent);border:none;color:var(--paper);display:flex;align-items:center;justify-content:center;margin:0 4px}
+  .transport .play:hover{background:var(--accent-2)}
+  .transport .play svg{width:20px;height:20px;display:block}
+  .transport .icon{color:var(--mut)}
+  .transport .icon:hover{color:var(--ink)}
+  .transport .icon svg{width:18px;height:18px;display:block}
+  .transport .time{color:var(--mut);font-size:12px;letter-spacing:.04em;margin-left:14px}
+
+  .card{background:var(--card);padding:18px 20px;border:1px solid var(--line);border-radius:var(--r)}
+  .card-title{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+  .modal-title,.timeRow,.transport .time,.hist .meta,#engine,#loopState{font-family:var(--mono)}
+  .card-title .grow{flex:1}
+
+  /* Pitch & Speed: compact single-line rows (full width) */
+  .row{display:grid;grid-template-columns:82px 22px minmax(0,1fr) 22px 70px auto;align-items:center;gap:13px;margin:14px 0}
+  .row:first-of-type{margin-top:0}
+  .row .lab{width:82px;color:var(--mut);font-size:12.5px;text-transform:lowercase;letter-spacing:.02em}
+  .row .step{width:22px;height:22px;border:none;background:transparent;color:var(--mut);font-size:15px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm)}
+  .row .step:hover{color:var(--accent);background:var(--paper-2)}
+  .row .readout{display:inline-flex;align-items:baseline;gap:5px;justify-self:start}
+  .row .val{font-variant-numeric:tabular-nums;color:var(--ink);font-size:13px}
+  .row .unit{color:var(--faint);font-size:11px}
+  .bpmout{color:var(--accent);font-size:11px;white-space:nowrap}
+  .bpmout:empty{display:none}
+  .row .reset{margin-left:2px;padding:3px 8px;font-size:11px;color:var(--faint);border:1px solid transparent;background:transparent;border-radius:var(--r-sm);letter-spacing:.02em;visibility:hidden}
+  .row .reset.show{visibility:visible}
+  .row .reset:hover{color:var(--accent);background:var(--paper-2)}
+  .opts{display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px;margin-top:18px;font-size:12px;color:var(--mut)}
+  label{display:inline-flex;align-items:center;gap:8px;color:var(--mut)}
+  input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px}
+
+  /* loop / sections */
+  .ptRow{display:flex;align-items:center;gap:8px;margin:10px 0}
+  .ptRow strong{width:14px;color:var(--mut);font-weight:600}
+  .ptRow input.t{width:84px;text-align:center}
+  #loopHint{color:var(--mut);font-size:12px;line-height:1.55;margin:2px 0 16px;letter-spacing:.02em}
+  .loopbar{display:flex;align-items:center;gap:9px;margin-top:16px;flex-wrap:wrap}
+  .looptoggle{width:40px;height:34px;padding:0;border-radius:var(--r-sm);border:1px solid var(--line-2);background:transparent;color:var(--mut);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.13s}
+  .looptoggle:disabled{opacity:.4;cursor:not-allowed}
+  .looptoggle:disabled:hover{background:transparent;border-color:var(--line-2)}
+  .looptoggle.ready{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+  .looptoggle.on{background:var(--accent);border-color:var(--accent);color:var(--paper)}
+  .looptoggle.on:hover{background:var(--accent-2)}
+  #sections{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+  .sec{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line-2);border-radius:var(--r-sm)}
+  .sec.active{border-color:var(--accent);background:var(--accent-soft)}
+  .sec input.nm{flex:1;min-width:60px;border:none;background:transparent;font:inherit;color:var(--ink)}
+  .sec input.nm:focus{outline:none}
+  .sec .rng{font-size:11.5px;color:var(--mut);white-space:nowrap;letter-spacing:.03em}
+  footer{max-width:720px;margin:4px auto 36px;padding:0 24px;color:var(--faint);font-size:11px;letter-spacing:.03em}
+  footer a{color:var(--mut);text-decoration:none;border-bottom:1px solid var(--line-2)}
+  footer a:hover{color:var(--accent)}
+  /* practice timer */
+  #installModal,#sessionsModal{position:fixed;inset:0;z-index:100;background:rgba(30,26,20,.45);display:flex;align-items:center;justify-content:center;padding:20px}
+  #installModal[hidden],#sessionsModal[hidden]{display:none}
+  .modal-box{position:relative;background:var(--card);border:1px solid var(--line-2);border-radius:var(--r);max-width:440px;width:100%;padding:26px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal-lg{max-width:540px}
+  .modal-title{display:flex;align-items:center;gap:10px;padding-right:30px}
+  .modal-title .grow{flex:1}
+  .modal-x{position:absolute;top:10px;right:12px;border:none;background:transparent;font-size:20px;color:var(--mut);padding:4px 8px}
+  .modal-title{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin-bottom:14px}
+  #installSteps{font-size:13.5px;line-height:1.7;color:var(--ink)}
+  #installSteps b{color:var(--accent-2)}
+  #installSteps .shareico{display:inline-block;vertical-align:-3px;width:15px;height:15px;color:var(--accent-2)}
+
+  /* ---- mobile / responsive ---- */
+  @media (max-width:760px){
+    html,body{height:auto}
+    .topbar{padding:12px 14px;gap:9px}
+    .topbar .title{font-size:12px;letter-spacing:.14em}
+    .wrap{padding:16px 14px}
+    .workspace{gap:14px}
+    .coffee .ctxt{display:none}          /* on small screens keep just the cup icon to save space */
+    .transport{flex-wrap:wrap}
+    .transport .time{margin-left:0}
+    .vol{margin-left:auto}
+    .card{padding:16px 16px}
+    .row .lab{font-size:12px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <main>
+    <div class="topbar">
+      <a class="brand" id="brand" href="../" title="Etude · all tools">
+        <svg class="mark" viewBox="0 0 13 24" aria-hidden="true"><rect x="1" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/><rect x="4.6" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><circle cx="8" cy="9" r="1.3" fill="currentColor"/><circle cx="8" cy="15" r="1.3" fill="currentColor"/></svg>
+        <span class="title">ETUDE</span>
+        <svg class="mark" viewBox="0 0 13 24" aria-hidden="true"><circle cx="5" cy="9" r="1.3" fill="currentColor"/><circle cx="5" cy="15" r="1.3" fill="currentColor"/><rect x="7.1" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><rect x="9.4" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/></svg>
+      </a>
+      <span class="subapp">Looper<span class="subdesc" data-i18n="tagline">a looping practice tool</span></span>
+      <span class="grow"></span>
+      <button id="openBtn" class="primary" title="Open a new video or audio file" data-i18n="open">open file</button>
+      <button id="loadSessionBtn" title="Open a saved session" data-i18n="load">load session</button>
+      <button id="saveSessionBtn" title="Save this file + its loops & settings" disabled>save session</button>
+      <select id="langSel" class="langsel" title="Language" aria-label="Language"><option value="en">EN</option><option value="tr">TR</option><option value="de">DE</option></select><button class="icon" id="themeBtn" title="Switch light / dark" aria-label="Switch light or dark theme"></button>
+      <a class="coffee" href="https://buymeacoffee.com/onurcelep" target="_blank" rel="noopener" title="Support Etude">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9h11v5a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9z"/><path d="M16 10h2.5a2 2 0 0 1 0 4H16"/><path d="M8.5 5c0 1-1 1-1 2M11.5 5c0 1-1 1-1 2"/></svg>
+        <span class="ctxt" data-i18n="coffee">buy me a coffee</span>
+      </a>
+      <input id="file" type="file" accept="video/*,audio/*" hidden />
+    </div>
+
+    <div class="wrap">
+      <div class="workspace">
+        <div class="center">
+          <div class="player">
+          <div id="drop" data-i18n="drop">drop a file here, or click to browse</div>
+          <div class="vwrap" id="vwrap">
+            <video id="v" playsinline></video>
+            <div class="voverlay">
+              <button id="ovA" class="ovbtn" title="Set loop start (A) here" data-i18n="ov_a">set A</button>
+              <button id="ovB" class="ovbtn" title="Set loop end (B) here" data-i18n="ov_b">set B</button>
+              <button id="ovLoop" class="ovbtn ovloop" title="Loop the A–B section">&#10227;</button>
+            </div>
+            <div id="audioArt">
+              <div class="wave"><span></span><span></span><span></span><span></span><span></span></div>
+              <div class="anm" id="audioName"></div>
+            </div>
+          </div>
+
+          <div id="bar"><div id="played"></div><div id="region"></div><div id="handleA" class="handle a" title="Drag to move A"></div><div id="handleB" class="handle b" title="Drag to move B"></div></div>
+          <div id="track"></div>
+          <div class="timeRow"><span id="loopState">loop: off</span></div>
+
+          <div class="transport">
+            <button class="icon" id="toStart" title="Restart"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="6" width="2" height="12" rx="1"/><path d="M19 6v12l-9-6z"/></svg></button>
+            <button class="icon" id="back5" title="Back 5s"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.5 6v12l-8-6z"/><path d="M20 6v12l-8-6z"/></svg></button>
+            <button class="play" id="play" title="Play / Pause"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+            <button class="icon" id="fwd5" title="Forward 5s"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6v12l8-6z"/><path d="M12.5 6v12l8-6z"/></svg></button>
+            <span class="time" id="time">0:00.0 / 0:00.0</span>
+            <span class="grow"></span>
+            <span class="vol">
+              <button class="icon" id="muteBtn" title="Mute / unmute"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9.5v5h3.3L12 18V6L7.3 9.5z"/><path d="M15.5 9a3.3 3.3 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+              <input id="vol" class="volrange" type="range" min="0" max="1" step="0.01" value="1" title="Volume" />
+            </span>
+            <button class="icon" id="fsBtn" title="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg></button>
+          </div>
+        </div>
+          <div class="card loopcard">
+        <div class="card-title" data-i18n="loops">Loops</div>
+        <div id="loopHint"></div>
+        <div class="ptRow"><strong>A</strong> <input class="t" id="aTime" placeholder="--:--" /> <button id="setA" class="mini" title="Set start to current time" data-i18n="set_btn">set</button> <button id="jumpA" class="mini play-mini" title="Play from A">&#9654;</button> <button id="clearA" class="mini" title="Clear A" data-i18n="clear_btn">clear</button></div>
+        <div class="ptRow"><strong>B</strong> <input class="t" id="bTime" placeholder="--:--" /> <button id="setB" class="mini" title="Set end to current time" data-i18n="set_btn">set</button> <button id="jumpB" class="mini play-mini" title="Play from B">&#9654;</button> <button id="clearB" class="mini" title="Clear B" data-i18n="clear_btn">clear</button></div>
+        <div class="loopbar">
+          <button id="loopBtn" class="looptoggle" title="Loop the A–B section">&#10227;</button>
+          <button id="saveSection" class="tog" title="Save this A–B as a reusable loop" data-i18n="save_loop">save-loop</button>
+        </div>
+        <div id="sections"></div>
+      </div>
+        </div>
+        <div class="side">
+          <div class="card pitchcard">
+          <div class="card-title" data-i18n="pitch_speed">Pitch &amp; Speed</div>
+          <div class="row">
+            <span class="lab" data-i18n="transpose">Transpose</span>
+            <button class="step" data-delta="trans:-1">&minus;</button>
+            <input id="trans" type="range" min="-12" max="12" step="1" value="0" />
+            <button class="step" data-delta="trans:1">+</button>
+            <span class="readout"><span class="val" id="transV">0</span><span class="unit">st</span></span>
+            <button class="reset" data-reset="trans" title="Reset to default" data-i18n="reset">reset</button>
+          </div>
+          <div class="row">
+            <span class="lab" data-i18n="pitch_lab">Pitch</span>
+            <button class="step" data-delta="pitch:-5">&minus;</button>
+            <input id="pitch" type="range" min="-100" max="100" step="1" value="0" />
+            <button class="step" data-delta="pitch:5">+</button>
+            <span class="readout"><span class="val" id="pitchV">0</span><span class="unit">&cent;</span></span>
+            <button class="reset" data-reset="pitch" title="Reset to default" data-i18n="reset">reset</button>
+          </div>
+          <div class="row">
+            <span class="lab" data-i18n="speed_lab">Speed</span>
+            <button class="step" data-delta="speed:-5">&minus;</button>
+            <input id="speed" type="range" min="25" max="175" step="5" value="100" />
+            <button class="step" data-delta="speed:5">+</button>
+            <span class="readout"><span class="val" id="speedV">100</span><span class="unit">%</span></span>
+            <button class="reset" data-reset="speed" title="Reset to default" data-i18n="reset">reset</button>
+          </div>
+          <div class="opts">
+            <label><input type="checkbox" id="keepPitch" checked /> <span data-i18n="keep_pitch">keep pitch</span></label>
+            <label class="mut"><span data-i18n="song_bpm">song bpm</span> <input id="bpm" type="number" min="0" placeholder="–" style="width:62px" /> <span class="bpmout" id="bpmOut"></span></label>
+          </div>
+        </div>
+                  </div>
+      </div>
+    </div>
+    <footer>
+      <a href="#" id="installLink" data-i18n="install_app">install app</a> ·
+      <span data-i18n="privacy">runs entirely in your browser · files never leave your device</span><span id="engine"></span>
+    </footer>
+  </main>
+</div>
+
+<div id="installModal" hidden>
+  <div class="modal-box">
+    <button class="modal-x" id="installClose" title="Close">&times;</button>
+    <div class="modal-title" data-i18n="install_title">Install Etude</div>
+    <div id="installSteps"></div>
+  </div>
+</div>
+
+<div id="sessionsModal" hidden>
+  <div class="modal-box modal-lg">
+    <button class="modal-x" id="sessionsClose" title="Close">&times;</button>
+    <div class="modal-title"><span data-i18n="saved_sessions">Saved sessions</span> <span class="grow"></span><button class="icon" id="clearHist" title="Delete all saved sessions">🗑</button></div>
+    <div id="histList"><div class="empty">No saved sessions yet. Open a file, set up your loops, then press “save session”.</div></div>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const v = $('v');
+
+/* ============ i18n: English / Türkçe / Deutsch, auto-detected + manual toggle ============ */
+const I18N = {
+  en: {
+    tagline:"a looping practice tool", open:"open file", load:"load session", save:"save session", saved:"saved ✓",
+    coffee:"buy me a coffee", drop:"drop a file here, or click to browse", loops:"Loops",
+    set_btn:"set", clear_btn:"clear", save_loop:"save-loop", ov_a:"set A", ov_b:"set B",
+    pitch_speed:"Pitch & Speed", transpose:"Transpose", pitch_lab:"Pitch", speed_lab:"Speed",
+    reset:"reset", keep_pitch:"keep pitch", song_bpm:"song bpm", install_app:"install app",
+    privacy:"runs entirely in your browser · files never leave your device",
+    install_title:"Install Etude", saved_sessions:"Saved sessions",
+    hint_none:"Set a start point (A) and an end point (B) to mark a section, then press the loop button to repeat it.",
+    hint_a:"Start set at {a}. Now play to the end and press “set” on B.",
+    hint_b:"End set at {b}. Now set the start point (A).",
+    hint_ready:"Section {a}–{b} ready. Press the loop button to repeat it.",
+    hint_loop:"Looping {a}–{b}. Press the loop button again to stop.",
+    loop_off:"loop: off", loop_on:"loop: {a}–{b}",
+    empty_sessions:"No saved sessions yet. Open a file, set up your loops, then press “save session”.",
+    empty_loops:"No saved loops yet. Mark A–B, then press “save-loop”.",
+    engine_ready:"engine ready", engine_native:"native, transpose off ({err})", prompt_name:"Name this session:",
+    install_ios:"Open this page in <b>Safari</b>, tap the <b>Share</b> button {ico} at the bottom, then choose <b>Add to Home Screen</b>. It then runs full-screen and works offline.",
+    install_other:"In <b>Chrome / Edge / Brave</b>: click the <b>install icon</b> in the address bar, or open the menu and choose <b>Install page as app</b>.<br><br>In <b>Safari</b> (Mac): <b>File → Add to Dock</b>."
+  },
+  tr: {
+    tagline:"döngüsel çalışma aracı", open:"dosya aç", load:"oturum yükle", save:"oturumu kaydet", saved:"kaydedildi ✓",
+    coffee:"bana kahve ısmarla", drop:"bir dosya bırak veya seçmek için tıkla", loops:"Döngüler",
+    set_btn:"ayarla", clear_btn:"temizle", save_loop:"döngüyü kaydet", ov_a:"A ayarla", ov_b:"B ayarla",
+    pitch_speed:"Perde & Hız", transpose:"Transpoze", pitch_lab:"İnce Ayar", speed_lab:"Hız",
+    reset:"sıfırla", keep_pitch:"perdeyi koru", song_bpm:"parça bpm", install_app:"uygulamayı yükle",
+    privacy:"tamamen tarayıcınızda çalışır · dosyalar cihazınızdan çıkmaz",
+    install_title:"Etude’ü yükle", saved_sessions:"Kayıtlı oturumlar",
+    hint_none:"Bir bölümü işaretlemek için başlangıç (A) ve bitiş (B) noktası koy, sonra tekrarlamak için döngü düğmesine bas.",
+    hint_a:"Başlangıç {a} olarak ayarlandı. Şimdi sona kadar çal ve B için “ayarla”ya bas.",
+    hint_b:"Bitiş {b} olarak ayarlandı. Şimdi başlangıç (A) noktasını ayarla.",
+    hint_ready:"{a}–{b} bölümü hazır. Tekrarlamak için döngü düğmesine bas.",
+    hint_loop:"{a}–{b} döngüde. Durdurmak için döngü düğmesine tekrar bas.",
+    loop_off:"döngü: kapalı", loop_on:"döngü: {a}–{b}",
+    empty_sessions:"Henüz kayıtlı oturum yok. Bir dosya aç, döngülerini kur, sonra “oturumu kaydet”e bas.",
+    empty_loops:"Henüz kayıtlı döngü yok. A–B işaretle, sonra “döngüyü kaydet”e bas.",
+    engine_ready:"motor hazır", engine_native:"yerel, transpoze kapalı ({err})", prompt_name:"Bu oturuma bir ad ver:",
+    install_ios:"Bu sayfayı <b>Safari</b>’de aç, alttaki <b>Paylaş</b> düğmesine {ico} dokun, sonra <b>Ana Ekrana Ekle</b>’yi seç. Ardından tam ekran çalışır ve çevrimdışı kullanılır.",
+    install_other:"<b>Chrome / Edge / Brave</b>’de: adres çubuğundaki <b>yükle simgesine</b> tıkla ya da menüden <b>Sayfayı uygulama olarak yükle</b>’yi seç.<br><br><b>Safari</b> (Mac): <b>Dosya → Dock’a Ekle</b>."
+  },
+  de: {
+    tagline:"ein Loop-Übungswerkzeug", open:"Datei öffnen", load:"Sitzung laden", save:"Sitzung speichern", saved:"gespeichert ✓",
+    coffee:"spendier mir einen Kaffee", drop:"Datei hierher ziehen oder zum Auswählen klicken", loops:"Loops",
+    set_btn:"setzen", clear_btn:"löschen", save_loop:"Loop speichern", ov_a:"A setzen", ov_b:"B setzen",
+    pitch_speed:"Tonhöhe & Tempo", transpose:"Transponieren", pitch_lab:"Tonhöhe", speed_lab:"Tempo",
+    reset:"zurücksetzen", keep_pitch:"Tonhöhe halten", song_bpm:"Song-BPM", install_app:"App installieren",
+    privacy:"läuft komplett im Browser · Dateien verlassen dein Gerät nie",
+    install_title:"Etude installieren", saved_sessions:"Gespeicherte Sitzungen",
+    hint_none:"Setze einen Startpunkt (A) und einen Endpunkt (B), um einen Abschnitt zu markieren, und drücke dann die Loop-Taste zum Wiederholen.",
+    hint_a:"Start bei {a} gesetzt. Spiele jetzt bis zum Ende und drücke bei B auf „setzen“.",
+    hint_b:"Ende bei {b} gesetzt. Setze jetzt den Startpunkt (A).",
+    hint_ready:"Abschnitt {a}–{b} bereit. Drücke die Loop-Taste zum Wiederholen.",
+    hint_loop:"{a}–{b} läuft in Schleife. Drücke die Loop-Taste erneut zum Stoppen.",
+    loop_off:"Loop: aus", loop_on:"Loop: {a}–{b}",
+    empty_sessions:"Noch keine gespeicherten Sitzungen. Öffne eine Datei, richte deine Loops ein und drücke dann „Sitzung speichern“.",
+    empty_loops:"Noch keine gespeicherten Loops. Markiere A–B und drücke dann „Loop speichern“.",
+    engine_ready:"Engine bereit", engine_native:"nativ, Transponieren aus ({err})", prompt_name:"Benenne diese Sitzung:",
+    install_ios:"Öffne diese Seite in <b>Safari</b>, tippe unten auf <b>Teilen</b> {ico} und wähle dann <b>Zum Home-Bildschirm</b>. Sie läuft dann im Vollbild und offline.",
+    install_other:"In <b>Chrome / Edge / Brave</b>: Klicke auf das <b>Installieren-Symbol</b> in der Adressleiste oder wähle im Menü <b>Seite als App installieren</b>.<br><br>In <b>Safari</b> (Mac): <b>Ablage → Zum Dock hinzufügen</b>."
+  }
+};
+let lang = 'en';
+function t(k, vars) {
+  let s = (I18N[lang] && I18N[lang][k] != null) ? I18N[lang][k] : (I18N.en[k] != null ? I18N.en[k] : k);
+  if (vars) for (const p in vars) s = s.split('{' + p + '}').join(vars[p]);
+  return s;
+}
+function applyLang() {
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+  document.documentElement.lang = lang;
+  const ls = $('langSel'); if (ls) ls.value = lang;
+  updateAB(); renderSections(); renderHistory(); setEngine(); updateSaveUI();
+}
+function setLang(l) { lang = I18N[l] ? l : 'en'; try { localStorage.setItem('etude.lang', lang); } catch (e) {} applyLang(); }
+
+const ICON_PLAY  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="4" height="14" rx="1"/><rect x="13.5" y="5" width="4" height="14" rx="1"/></svg>';
+const ICON_VOL   = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9.5v5h3.3L12 18V6L7.3 9.5z"/><path d="M15.5 9a3.3 3.3 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
+const ICON_MUTE  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9.5v5h3.3L12 18V6L7.3 9.5z"/><path d="M15.5 10l4 4M19.5 10l-4 4" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linecap="round"/></svg>';
+
+/* =========================================================================
+   PLAYER  (local <video>)
+   ========================================================================= */
+/* ---- engine state: decoded-buffer playback (Signalsmith tempo+pitch) + muted, synced video ---- */
+let ac = null, gainNode = null, shifter = null, buffer = null, bufferMode = false, engineState = null, shifterOn = false;
+let volume = parseFloat(localStorage.getItem('vlooper.vol') || '1'); let muted = false;
+
+function ensureCtx() {
+  if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); gainNode = ac.createGain(); gainNode.connect(ac.destination); applyVol(); }
+  if (ac.state === 'suspended') ac.resume();
+}
+
+/* ---- time-stretch / pitch engine: Signalsmith Stretch (WASM, AudioWorklet) ---- */
+let _signalsmith = null;
+async function loadSignalsmith() {
+  if (!_signalsmith) _signalsmith = (await import('./signalsmith-stretch.mjs')).default;
+  return _signalsmith;
+}
+// A Signalsmith-backed object exposing the small interface the app uses (position, tempo, pitch, connect/disconnect).
+async function makeSignalsmithShifter(context, buf, dest) {
+  const factory = await loadSignalsmith();
+  const node = await factory(context, { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2] });
+  const L = buf.getChannelData(0), R = buf.numberOfChannels > 1 ? buf.getChannelData(1) : buf.getChannelData(0);
+  node.addBuffers([L, R]);
+  node.setUpdateInterval(0.03);
+  const dur = buf.duration;
+  let tempo = 1, rate = 1, semis = 0, pos = 0;
+  const speed = () => tempo * rate;
+  const pitch = () => semis + (rate !== 1 ? 12 * Math.log2(rate) : 0);   // the engine rate also moves pitch (tape mode)
+  const out = () => context.currentTime + 0.05;
+  return {
+    duration: dur, _node: node,
+    get percentagePlayed() { if (context.state === 'running' && typeof node.inputTime === 'number') pos = node.inputTime; return dur ? 100 * pos / dur : 0; },
+    set percentagePlayed(frac) { pos = frac * dur; node.schedule({ active: true, input: pos, output: out(), rate: speed(), semitones: pitch() }); },
+    set tempo(x) { tempo = x; node.schedule({ rate: speed(), semitones: pitch() }); },
+    set rate(x) { rate = x; node.schedule({ rate: speed(), semitones: pitch() }); },
+    set pitchSemitones(s) { semis = s; node.schedule({ rate: speed(), semitones: pitch() }); },
+    // engine runs continuously; play/pause is done by suspending the whole AudioContext
+    connect(target) { node.connect(target); node.schedule({ active: true, input: pos, output: out(), rate: speed(), semitones: pitch() }); },
+    disconnect() { try { node.schedule({ active: false, output: context.currentTime }); node.disconnect(); } catch (e) {} }
+  };
+}
+function makeShifter() { return makeSignalsmithShifter(ac, buffer, gainNode); }
+const hasMedia = () => bufferMode ? !!buffer : !!v.src;
+const pDur  = () => bufferMode ? (shifter ? shifter.duration : 0) : (v.duration || 0);
+const pTime = () => bufferMode ? (shifter ? shifter.percentagePlayed / 100 * shifter.duration : 0) : v.currentTime;
+const pPaused = () => v.paused;
+function pSeek(t) {
+  const d = pDur(); t = Math.max(0, Math.min(t, d || t));
+  // NB: the engine percentagePlayed setter takes a 0–1 fraction (getter returns 0–100).
+  if (bufferMode && shifter) shifter.percentagePlayed = d ? (t / d) : 0;   // setter also clears the pipe internally
+  try { v.currentTime = t; } catch (e) {}
+}
+function play() {
+  if (bufferMode) { ensureCtx(); if (shifter && !shifterOn) { shifter.connect(gainNode); shifterOn = true; } }   // engine hooked up once; ensureCtx resumes ac
+  else if (ac && ac.state === 'suspended') ac.resume();
+  v.play().catch(() => {});                 // muted video plays for the picture; audio is the engine
+}
+function pause() {
+  if (bufferMode && ac && ac.state === 'running') ac.suspend();   // freeze the audio thread (both engines stop cleanly)
+  v.pause();
+}
+function setPlayUI(p) { $('play').innerHTML = p ? ICON_PAUSE : ICON_PLAY; }
+const startPlayback = play;
+
+function setControls(on) {
+  ['bar', 'track'].forEach(id => $(id).style.display = on ? '' : 'none');
+  document.querySelector('.timeRow').style.display = on ? '' : 'none';
+  document.querySelector('.transport').style.display = on ? '' : 'none';
+}
+function showChooser() { $('drop').style.display = ''; $('vwrap').style.display = 'none'; setControls(true); }
+function showPlayer() { $('drop').style.display = 'none'; $('vwrap').style.display = ''; setControls(true); }
+
+/* =========================================================================
+   ENGINE: the file audio is decoded and played through Signalsmith Stretch so tempo
+   (speed) and pitch (transpose) work together WITHOUT touching the videos
+   playbackRate (which iOS Safari garbles). The video is muted and just follows.
+   ========================================================================= */
+function totalSemis() { return (+$("trans").value) + (+$("pitch").value) / 100; }
+function applyPitch() { if (bufferMode && shifter) shifter.pitchSemitones = totalSemis(); }
+function applyVol() { if (gainNode) gainNode.gain.value = muted ? 0 : volume; else v.volume = muted ? 0 : volume; }
+function setPitchEnabled(en) { $("trans").disabled = !en; $("pitch").disabled = !en; }
+function updateMuteUI() { const b = $('muteBtn'); b.innerHTML = (muted || volume === 0) ? ICON_MUTE : ICON_VOL; b.classList.toggle('muted', muted); }
+function setEngine() { const el = $("engine"); if (!el) return; el.textContent = (engineState && engineState.err) ? " · " + t("engine_native", { err: engineState.err }) : ""; }
+
+/* =========================================================================
+   STATE + PERSISTENCE
+   ========================================================================= */
+const LS = 'vlooper.v1';
+let store = loadStore();                 // { [id]: session }
+let cur = null, curBlob = null;          // current session object + its file bytes (for saving)
+let A = null, B = null, loopOn = false, activeSec = null;
+
+function loadStore() { try { return JSON.parse(localStorage.getItem(LS)) || {}; } catch (e) { return {}; } }
+function saveStore() { try { localStorage.setItem(LS, JSON.stringify(store)); } catch (e) {} }
+
+let saveTimer = null;
+function persist() {
+  if (!cur) return;
+  cur.trans = +$('trans').value; cur.pitch = +$('pitch').value; cur.speed = +$('speed').value;
+  cur.keepPitch = $('keepPitch').checked; cur.bpm = $('bpm').value;
+  cur.A = A; cur.B = B; cur.loopOn = loopOn; cur.sections = sections;
+  if (!cur.saved) return;                 // unsaved file: keep state in memory only
+  cur.lastOpened = Date.now();
+  store[cur.id] = cur;
+  clearTimeout(saveTimer); saveTimer = setTimeout(() => { saveStore(); renderHistory(); }, 250);
+}
+
+let sections = [];
+
+/* =========================================================================
+   FILE LOADING
+   ========================================================================= */
+/* brand is now a link back to the Etude hub (../); the drop zone + "open file" button open files */
+$('drop').onclick = () => { ensureCtx(); $('file').click(); };
+$('file').onchange = e => { if (e.target.files[0]) load(e.target.files[0]); };
+['dragenter','dragover'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $('drop').classList.add('hover'); }));
+['dragleave','drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $('drop').classList.remove('hover'); }));
+document.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.files[0]) load(e.dataTransfer.files[0]); });
+
+/* ---- IndexedDB: persist the actual video bytes so history reopens instantly ---- */
+let _db = null;
+function idb() {
+  if (_db) return Promise.resolve(_db);
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('vlooper', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('videos');
+    r.onsuccess = () => { _db = r.result; res(_db); };
+    r.onerror = () => rej(r.error);
+  });
+}
+function idbReq(store, mode, fn) {
+  return idb().then(db => new Promise((res, rej) => {
+    const tx = db.transaction('videos', mode);
+    const rq = fn(tx.objectStore('videos'));
+    tx.oncomplete = () => res(rq && rq.result);
+    tx.onerror = () => rej(tx.error);
+  }));
+}
+const idbPut = (id, blob) => idbReq('videos', 'readwrite', s => s.put(blob, id)).catch(() => {});
+const idbGet = (id) => idbReq('videos', 'readonly', s => s.get(id)).catch(() => null);
+const idbDel = (id) => idbReq('videos', 'readwrite', s => s.delete(id)).catch(() => {});
+const idbClear = () => idbReq('videos', 'readwrite', s => s.clear()).catch(() => {});
+
+// Open a picked/dropped file. Nothing is stored unless you press "save session".
+// (If this exact file was saved before, its loops/settings are restored.)
+function load(file) {
+  const id = file.name + '__' + file.size;
+  openMedia(file, id, file.name, file.size, store[id] || null);
+}
+
+// Reopen a saved session: reload its stored bytes (no picker).
+async function openFromHistory(id) {
+  const s = store[id];
+  const blob = await idbGet(id);
+  if (!blob) {                              // bytes missing (cleared/quota) -> ask to relocate
+    pendingId = id; $('file').click(); return;
+  }
+  openMedia(blob, id, s ? s.name : 'video', s ? s.size : (blob.size || 0), s || null);
+}
+
+function applySession() {
+  $('trans').value = cur.trans || 0;
+  $('pitch').value = cur.pitch || 0;
+  $('speed').value = cur.speed || 100;
+  $('keepPitch').checked = cur.keepPitch !== false;
+  $('bpm').value = cur.bpm || '';
+  A = (cur.A ?? null); B = (cur.B ?? null);
+  loopOn = !!cur.loopOn; sections = cur.sections || []; activeSec = null;
+  applyAll(); renderSections(); updateAB(); persist();
+}
+async function openMedia(blob, id, name, size, sessionData) {
+  curBlob = blob;
+  v.src = URL.createObjectURL(blob);
+  v.classList.add('show');
+  cur = sessionData || { id, name, size };
+  cur.name = name; cur.size = size; cur.saved = !!sessionData;   // "saved" only if it came from a stored session
+  $('audioName').textContent = name;
+  const audioHint = (blob.type || '').startsWith('audio/') || /\.(wav|mp3|m4a|aac|ogg|oga|flac|opus|aif|aiff|wma)$/i.test(name || '');
+  $('vwrap').classList.toggle('audio', audioHint);   // early guess (type OR extension); confirmed on loadedmetadata
+
+  // Decode the audio for the engine (tempo+pitch together). Fall back to native if it won't decode.
+  bufferMode = false; buffer = null;
+  if (shifter) { try { shifter.disconnect(); } catch (e) {} shifter = null; }
+  try {
+    ensureCtx();
+    const arr = await blob.arrayBuffer();
+    buffer = await new Promise((res, rej) => {           // handle BOTH promise & old callback forms (iOS Safari)
+      let p;
+      try { p = ac.decodeAudioData(arr, res, rej); } catch (err) { return rej(err); }
+      if (p && typeof p.then === 'function') p.then(res, rej);
+    });
+    if (!buffer) throw new Error('empty buffer');
+    if (shifter && shifter._node) { try { shifter.disconnect(); } catch (e) {} }
+    if (ac.state !== 'running') { try { await ac.resume(); } catch (e) {} }   // engine WASM must init on a running context
+    shifter = await makeShifter(); shifterOn = false;     // play() will hook it up
+    bufferMode = true; v.muted = true;                   // audio from engine; video muted, visual only
+    engineState = { ready: true };
+  } catch (e) {
+    bufferMode = false; v.muted = false;
+    engineState = { err: (e && e.name) || "decode failed" };
+    console.warn('Etude: decodeAudioData failed →', e);
+  }
+  setPitchEnabled(bufferMode); setEngine();
+  applySession();     // applyAll → applyPitch/applySpeed onto the shifter
+  showPlayer();
+  play();
+  updateSaveUI();
+}
+
+// Explicitly save the current session (video bytes + loops + settings), with a name.
+function saveSession() {
+  if (!cur || !v.src || !curBlob || cur.saved) return;   // already saved → no re-prompt (it auto-updates)
+  const suggested = cur.label || cur.name || 'Session';
+  const name = prompt(t("prompt_name"), suggested);
+  if (name === null) return;                 // cancelled, don't save
+  cur.label = name.trim() || suggested;
+  cur.saved = true;
+  persist(); saveStore();          // write settings now that it's saved
+  idbPut(cur.id, curBlob);         // store the file bytes for instant reopen
+  renderHistory(); updateSaveUI();
+}
+function updateSaveUI() {
+  const b = $('saveSessionBtn'); if (!b) return;
+  const saved = !!(cur && cur.saved);
+  b.textContent = saved ? t("saved") : t("save");
+  b.classList.toggle('on', saved);
+  b.disabled = !cur;
+}
+
+/* =========================================================================
+   CONTROLS  (delta +/- buttons, reset buttons, sliders)
+   ========================================================================= */
+const DEF = { trans: 0, pitch: 0, speed: 100 };
+function clampSet(id, val) {
+  const el = $(id); const lo = +el.min, hi = +el.max;
+  el.value = Math.max(lo, Math.min(hi, val)); applyAll(); persist();
+}
+document.querySelectorAll('[data-delta]').forEach(b => b.onclick = () => {
+  const [id, d] = b.dataset.delta.split(':'); clampSet(id, +$(id).value + (+d));
+});
+document.querySelectorAll('[data-reset]').forEach(b => b.onclick = () => {
+  const id = b.dataset.reset; $(id).value = DEF[id]; applyAll(); persist();
+});
+['trans','pitch'].forEach(id => $(id).oninput = () => { applyPitchLabels(); applyPitch(); persist(); });
+$('speed').oninput = () => { applySpeed(); persist(); };
+$('keepPitch').onchange = () => { applyKeepPitch(); persist(); };
+$('bpm').oninput = () => { applyBpm(); persist(); };
+
+function updateResets() { document.querySelectorAll('[data-reset]').forEach(b => { const id = b.dataset.reset; b.classList.toggle('show', (+$(id).value) !== DEF[id]); }); }
+function applyPitchLabels() { $('transV').textContent = signed(+$('trans').value); $('pitchV').textContent = signed(+$('pitch').value); updateResets(); }
+function applySpeed() {
+  const speed = (+$('speed').value) / 100;
+  const keep = $('keepPitch').checked;
+  if (bufferMode && shifter) {
+    if (keep) { shifter.rate = 1; shifter.tempo = speed; }   // tempo = pitch-preserving speed
+    else { shifter.tempo = 1; shifter.rate = speed; }        // rate = tape (pitch follows speed)
+  }
+  v.playbackRate = speed;                                    // muted video follows for the picture
+  $('speedV').textContent = Math.round(speed * 100);
+  applyBpm(); updateResets();
+}
+function applyKeepPitch() {
+  if (!bufferMode) { const on = $('keepPitch').checked; v.preservesPitch = v.mozPreservesPitch = v.webkitPreservesPitch = on; }
+  applySpeed();   // keep-pitch decides whether speed uses tempo (preserve) or rate (tape)
+}
+function applyBpm() { const base = +$('bpm').value; $('bpmOut').textContent = base > 0 ? '→ ' + Math.round(base * (+$('speed').value) / 100) + ' bpm' : ''; }
+function applyAll() { applyPitchLabels(); applyPitch(); applySpeed(); applyKeepPitch(); applyBpm(); }
+function signed(n) { return (n > 0 ? '+' : '') + n; }
+
+/* =========================================================================
+   TRANSPORT
+   ========================================================================= */
+function togglePlay() {
+  if (!v.src) return $('file').click();
+  if (v.paused) play(); else pause();
+}
+$('play').onclick = togglePlay;
+v.addEventListener('click', () => { if (v.src) { if (v.paused) play(); else pause(); } });
+$('ovA').onclick = () => $('setA').click();
+$('ovB').onclick = () => $('setB').click();
+$('ovLoop').onclick = () => $('loopBtn').click();
+$('toStart').onclick = () => pSeek((loopOn && A != null) ? A : 0);
+$('back5').onclick = () => pSeek(pTime() - 5);
+$('fwd5').onclick = () => pSeek(Math.min(pDur(), pTime() + 5));
+$('vol').oninput = () => { volume = +$('vol').value; muted = false; localStorage.setItem('vlooper.vol', volume); applyVol(); updateMuteUI(); };
+$('muteBtn').onclick = () => { muted = !muted; applyVol(); updateMuteUI(); };
+$('fsBtn').onclick = () => {
+  if (document.fullscreenElement) { document.exitFullscreen(); return; }
+  const el = $('vwrap');
+  if (el.requestFullscreen) el.requestFullscreen();
+  else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  else if (v.webkitEnterFullscreen) v.webkitEnterFullscreen();   // iOS: native video fullscreen
+};
+v.onplay = () => { setPlayUI(true); $('vwrap').classList.add('playing'); };
+v.onpause = () => { setPlayUI(false); $('vwrap').classList.remove('playing'); if (!bufferMode && ac && ac.state === 'running') ac.suspend(); };
+v.addEventListener('loadedmetadata', () => { if (cur) cur.dur = v.duration; $('vwrap').classList.toggle('audio', !v.videoWidth); updateAB(); });
+let lastT = 0, frameN = 0;
+function tick() {
+  if (hasMedia()) {
+    const t = pTime();
+    // Loop: jump back the instant we reach B. Guard against re-firing during the seek.
+    if (loopOn && A != null && B != null && !pPaused() && t >= B && t >= lastT) {
+      pSeek(A);
+      ['handleA', 'handleB'].forEach(id => { const el = $(id); el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); });   // brackets pulse on each repeat
+      lastT = A;
+    } else {
+      lastT = t;
+    }
+    // keep the muted video aligned to the audio engine
+    if (bufferMode && !pPaused() && !v.seeking && Math.abs(v.currentTime - t) > 0.3) {
+      try { v.currentTime = t; } catch (e) {}
+    }
+    if ((frameN++ & 3) === 0) {   // repaint the bar/time only ~15×/s to spare the decoder
+      $('played').style.width = pct(t) + '%';
+      $('time').textContent = fmt(t) + ' / ' + fmt(pDur());
+    }
+  }
+  requestAnimationFrame(tick);   // loop boundary checked every frame (tight)
+}
+requestAnimationFrame(tick);
+$('bar').onclick = e => { if (!pDur()) return; const r = $('bar').getBoundingClientRect(); pSeek((e.clientX - r.left) / r.width * pDur()); };
+
+// Drag the A / B brackets to adjust the loop points.
+function startDrag(which, ev) {
+  if (!pDur()) return;
+  ev.preventDefault(); ev.stopPropagation();
+  const h = $(which === 'A' ? 'handleA' : 'handleB'); h.classList.add('drag');
+  const move = e => {
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const r = $('bar').getBoundingClientRect();
+    let t = Math.max(0, Math.min(pDur(), (x - r.left) / r.width * pDur()));
+    if (which === 'A') { if (B != null) t = Math.min(t, B - 0.05); A = t; }
+    else { if (A != null) t = Math.max(t, A + 0.05); B = t; }
+    updateAB(); persist();
+  };
+  const up = () => {
+    h.classList.remove('drag');
+    document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up);
+    document.removeEventListener('touchmove', move); document.removeEventListener('touchend', up);
+  };
+  document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
+  document.addEventListener('touchmove', move, { passive: false }); document.addEventListener('touchend', up);
+}
+$('handleA').addEventListener('pointerdown', e => startDrag('A', e));
+$('handleB').addEventListener('pointerdown', e => startDrag('B', e));
+$('handleA').addEventListener('click', e => e.stopPropagation());   // don't let a tap on the bracket seek the bar
+$('handleB').addEventListener('click', e => e.stopPropagation());
+function pct(t) { return Math.max(0, Math.min(100, t / (pDur() || 1) * 100)); }
+
+/* =========================================================================
+   LOOP A/B + SECTIONS
+   ========================================================================= */
+$('loopBtn').onclick = () => {
+  if (A == null || B == null) return;               // only when a section is defined
+  loopOn = !loopOn;
+  if (loopOn) { if (pTime() < A || pTime() >= B) pSeek(A); play(); }
+  updateAB(); persist();
+};
+$('setA').onclick = () => { A = round1(pTime()); if (B != null && A > B) [A, B] = [B, A]; activeSec = null; updateAB(); persist(); };
+$('setB').onclick = () => { B = round1(pTime()); if (A != null && B < A) [A, B] = [B, A]; activeSec = null; updateAB(); persist(); };
+$('jumpA').onclick = () => { if (A != null) { pSeek(A); play(); } };
+$('jumpB').onclick = () => { if (B != null) { pSeek(B); play(); } };
+$('clearA').onclick = () => { A = null; loopOn = false; activeSec = null; updateAB(); persist(); };
+$('clearB').onclick = () => { B = null; loopOn = false; activeSec = null; updateAB(); persist(); };
+$('aTime').onchange = () => { const t = parseTime($('aTime').value); if (t != null) { A = clampTime(t); if (B != null && A > B) [A, B] = [B, A]; activeSec = null; updateAB(); persist(); } else updateAB(); };
+$('bTime').onchange = () => { const t = parseTime($('bTime').value); if (t != null) { B = clampTime(t); if (A != null && B < A) [A, B] = [B, A]; activeSec = null; updateAB(); persist(); } else updateAB(); };
+function clampTime(t) { return round1(Math.max(0, Math.min(t, pDur() || t))); }
+
+$('saveSection').onclick = () => {
+  if (A == null || B == null) { alert('Set both A and B first.'); return; }
+  const s = { id: 's' + (Date.now()), name: 'Loop ' + (sections.length + 1), start: A, end: B };
+  sections.push(s); activeSec = s.id; renderSections(); persist();
+};
+function activateSection(s) { A = s.start; B = s.end; loopOn = true; activeSec = s.id; pSeek(A); play(); updateAB(); persist(); }
+
+function renderSections() {
+  const box = $('sections'); box.innerHTML = '';
+  if (!sections.length) { box.innerHTML = '<div class="empty" style="padding:4px 2px">' + t("empty_loops") + '</div>'; drawMarks(); return; }
+  sections.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'sec' + (s.id === activeSec ? ' active' : '');
+    row.innerHTML =
+      '<button class="icon" title="Play this section">&#9205;</button>' +
+      '<input class="nm" value="">' +
+      '<span class="rng">' + fmt(s.start) + ' → ' + fmt(s.end) + '</span>' +
+      '<button class="icon" title="Update A/B from this">&#8631;</button>' +
+      '<button class="icon" title="Delete">&#128465;</button>';
+    const [playB, nm, , updB, delB] = row.children;
+    nm.value = s.name;
+    playB.onclick = () => activateSection(s);
+    nm.onchange = () => { s.name = nm.value; drawMarks(); persist(); };   // keep the timeline label in sync with the name
+    updB.onclick = () => { s.start = A ?? s.start; s.end = B ?? s.end; renderSections(); persist(); };
+    delB.onclick = () => { sections = sections.filter(x => x.id !== s.id); if (activeSec === s.id) activeSec = null; renderSections(); persist(); };
+    box.appendChild(row);
+  });
+  drawMarks();
+}
+function updateAB() {
+  $('aTime').value = A != null ? fmt(A) : '';
+  $('bTime').value = B != null ? fmt(B) : '';
+  const ready = A != null && B != null;
+
+  // primary Loop button: disabled until a section exists, "ready" highlight when set, solid when on
+  const lb = $('loopBtn');
+  lb.disabled = !ready;
+  lb.classList.toggle('on', loopOn && ready);
+  lb.classList.toggle('ready', ready && !loopOn);
+  lb.innerHTML = '⟳';
+  lb.title = (loopOn && ready) ? 'Stop looping' : 'Loop the A–B section';
+  $('ovLoop').classList.toggle('on', loopOn && ready);
+
+  // guidance line: always tells the user the next step
+  let hint;
+  if (A == null && B == null) hint = t("hint_none");
+  else if (A != null && B == null) hint = t("hint_a", { a: fmt(A) });
+  else if (A == null && B != null) hint = t("hint_b", { b: fmt(B) });
+  else if (!loopOn) hint = t("hint_ready", { a: fmt(A), b: fmt(B) });
+  else hint = t("hint_loop", { a: fmt(A), b: fmt(B) });
+  $('loopHint').textContent = hint;
+
+  // timeline band: faint as soon as both points exist, solid while looping
+  const reg = $('region'), hA = $('handleA'), hB = $('handleB'), d = pDur();
+  hA.style.display = (A != null && d) ? 'block' : 'none';
+  hB.style.display = (B != null && d) ? 'block' : 'none';
+  if (A != null && d) hA.style.left = pct(A) + '%';
+  if (B != null && d) hB.style.left = pct(B) + '%';
+  if (ready && d) {
+    reg.style.display = 'block';
+    reg.style.left = pct(A) + '%'; reg.style.width = (pct(B) - pct(A)) + '%';
+    reg.classList.toggle('active', loopOn);
+  } else reg.style.display = 'none';
+
+  $("loopState").textContent = (loopOn && ready) ? t("loop_on", { a: fmt(A), b: fmt(B) }) : t("loop_off");
+  drawMarks();
+}
+// Render saved loops as a track below the timeline. Overlapping loops are packed
+// into stacked lanes (greedy: each loop goes in the first lane it fits) so they never collide.
+function drawMarks() {
+  const t = $('track'); if (!t) return;
+  t.innerHTML = '';
+  if (!pDur() || !sections.length) { t.style.display = 'none'; return; }
+  t.style.display = 'block';
+  const sorted = [...sections].sort((a, b) => a.start - b.start);
+  const laneEnds = [];                       // last end-time placed in each lane
+  sorted.forEach(s => {
+    let lane = laneEnds.findIndex(end => s.start >= end);
+    if (lane === -1) lane = laneEnds.length;
+    laneEnds[lane] = s.end;
+    const el = document.createElement('div');
+    el.className = 'seg-bar' + (s.id === activeSec ? ' active' : '');
+    const w = pct(s.end) - pct(s.start);
+    el.style.left = pct(s.start) + '%';
+    el.style.width = Math.max(2, w) + '%';
+    el.style.top = (lane * 19) + 'px';
+    el.title = s.name + ' · ' + fmt(s.start) + '–' + fmt(s.end);
+    el.textContent = w >= 9 ? s.name : '';   // only label when there's room; short loops show on hover
+    el.onclick = () => activateSection(s);
+    t.appendChild(el);
+  });
+  t.style.height = (laneEnds.length * 19 - 3) + 'px';
+}
+
+/* =========================================================================
+   HISTORY SIDEBAR
+   ========================================================================= */
+$('openBtn').onclick = () => { ensureCtx(); $('file').click(); };
+$('loadSessionBtn').onclick = () => { renderHistory(); $('sessionsModal').hidden = false; };
+$('sessionsClose').onclick = () => { $('sessionsModal').hidden = true; };
+$('sessionsModal').onclick = (e) => { if (e.target.id === 'sessionsModal') $('sessionsModal').hidden = true; };
+$('clearHist').onclick = () => { if (confirm('Clear all saved sessions and stored videos?')) { store = {}; saveStore(); idbClear(); renderHistory(); } };
+function renderHistory() {
+  const list = $('histList');
+  const items = Object.values(store).sort((a, b) => (b.lastOpened || 0) - (a.lastOpened || 0));
+  if (!items.length) { list.innerHTML = '<div class="empty">' + t("empty_sessions") + '</div>'; return; }
+  list.innerHTML = '';
+  items.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'hist';
+    el.innerHTML = '<span class="del" title="Forget">&times;</span><span class="ren" title="Rename">&#9998;</span>' +
+      '<div class="nm">' + esc(s.label || s.name) + '</div>' +
+      '<div class="meta"><span>' + (s.sections ? s.sections.length : 0) + ' loops</span><span>' + ago(s.lastOpened) + '</span></div>' +
+      (s.label ? '<div class="meta" style="opacity:.7">' + esc(s.name) + '</div>' : '');
+    el.querySelector('.del').onclick = (ev) => { ev.stopPropagation(); delete store[s.id]; saveStore(); idbDel(s.id); renderHistory(); };
+    el.querySelector('.ren').onclick = (ev) => { ev.stopPropagation(); const nm = prompt(t("prompt_name"), s.label || s.name); if (nm != null) { s.label = nm.trim(); store[s.id] = s; saveStore(); renderHistory(); } };
+    el.onclick = () => { openFromHistory(s.id); $('sessionsModal').hidden = true; };
+    list.appendChild(el);
+  });
+}
+let pendingId = null;   // when a history item is clicked, we expect this file next
+
+/* =========================================================================
+   HELPERS
+   ========================================================================= */
+function round1(t) { return Math.round(t * 10) / 10; }
+function fmt(t) { t = Math.max(0, t || 0); const m = Math.floor(t / 60); const s = (t - m * 60); return m + ':' + (s < 10 ? '0' : '') + s.toFixed(1); }
+function parseTime(str) {
+  str = (str || '').trim(); if (!str) return null;
+  if (str.includes(':')) { const p = str.split(':'); const m = parseFloat(p[0]) || 0, s = parseFloat(p[1]) || 0; return m * 60 + s; }
+  const n = parseFloat(str); return isNaN(n) ? null : n;
+}
+function esc(s) { return (s || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function ago(t) { if (!t) return ''; const d = (Date.now() - t) / 1000; if (d < 60) return 'just now'; if (d < 3600) return Math.floor(d / 60) + 'm ago'; if (d < 86400) return Math.floor(d / 3600) + 'h ago'; return Math.floor(d / 86400) + 'd ago'; }
+
+/* =========================================================================
+   KEYBOARD
+   ========================================================================= */
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  switch (e.key) {
+    case ' ': e.preventDefault(); togglePlay(); break;
+    case 'a': case 'A': $('setA').click(); break;
+    case 'b': case 'B': $('setB').click(); break;
+    case 'l': case 'L': $('loopBtn').click(); break;
+    case 'ArrowLeft': $('back5').click(); break;
+    case 'ArrowRight': $('fwd5').click(); break;
+    case 'ArrowUp': clampSet('trans', +$('trans').value + 1); break;
+    case 'ArrowDown': clampSet('trans', +$('trans').value - 1); break;
+    case '[': clampSet('speed', +$('speed').value - 5); break;
+    case ']': clampSet('speed', +$('speed').value + 5); break;
+    case '0': $('speed').value = 100; $('trans').value = 0; $('pitch').value = 0; applyAll(); persist(); break;
+  }
+});
+
+$('vol').value = volume; updateMuteUI();
+$('saveSessionBtn').onclick = saveSession;
+
+/* ---- light / dark theme ---- */
+const ICON_SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6"/></svg>';
+const ICON_MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8 8 0 0 1 9.4 4 7 7 0 1 0 20 14.6z"/></svg>';
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  const tc = $('themeColor'); if (tc) tc.setAttribute('content', t === 'dark' ? '#121114' : '#f6f6f7');
+  const b = $('themeBtn'); if (b) { b.innerHTML = t === 'dark' ? ICON_SUN : ICON_MOON; b.title = t === 'dark' ? 'Switch to light' : 'Switch to dark'; }
+}
+$('themeBtn').onclick = () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('etude.theme', next); applyTheme(next);
+};
+applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+
+/* ---- language: auto-detect from browser, remember manual choice ---- */
+try {
+  const stored = localStorage.getItem('etude.lang');
+  const nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+  lang = stored || (I18N[nav] ? nav : 'en');
+} catch (e) { lang = 'en'; }
+if (!I18N[lang]) lang = 'en';
+$('langSel').onchange = () => setLang($('langSel').value);
+applyLang();
+
+updateSaveUI();
+showChooser();
+renderHistory();
+
+// Unlock/resume the AudioContext on the first real tap (iOS autoplay): the engine's WASM
+// must init on a running context, and the file-load flow is async (past the gesture).
+(function () {
+  const unlock = () => {
+    try { ensureCtx(); } catch (e) {}
+    if (ac && ac.state === 'running') { document.removeEventListener('pointerdown', unlock, true); document.removeEventListener('keydown', unlock, true); }
+  };
+  document.addEventListener('pointerdown', unlock, true);
+  document.addEventListener('keydown', unlock, true);
+})();
+
+// Debug readout: add ?debug to the URL to see engine state live.
+if (location.search.includes('debug')) {
+  const dbg = document.createElement('div');
+  dbg.style.cssText = 'position:fixed;bottom:8px;left:8px;z-index:9999;font:11px/1.5 monospace;background:rgba(0,0,0,.82);color:#5f5;padding:7px 9px;border-radius:7px;white-space:pre;pointer-events:none';
+  document.body.appendChild(dbg);
+  setInterval(() => {
+    dbg.textContent = 'ac: ' + (ac ? ac.state : 'none') + '\nbufferMode: ' + bufferMode + '  shifterOn: ' + shifterOn +
+      '\nshifter: ' + (shifter ? 'yes' : 'no') + '  v.paused: ' + v.paused +
+      '\npTime: ' + (pTime()).toFixed(2) + ' / ' + (pDur()).toFixed(2);
+  }, 150);
+}
+
+/* PWA: register service worker for offline + installability */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    if (!navigator.serviceWorker) return;
+    const dev = ['localhost', '127.0.0.1'].includes(location.hostname) || location.protocol === 'file:';
+    if (dev) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));   // local dev: never cache, always show edits
+    else navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+/* Install helper: native prompt on desktop Chromium; step-by-step on iOS/others */
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const SHARE_ICO = '<svg class="shareico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7"/></svg>';
+if (isStandalone) $('installLink').style.display = 'none';   // already installed
+$('installLink').onclick = (e) => {
+  e.preventDefault();
+  if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.finally(() => { deferredPrompt = null; }); return; }
+  $('installSteps').innerHTML = isIOS
+    ? t("install_ios", { ico: SHARE_ICO })
+    : t("install_other");
+  $('installModal').hidden = false;
+};
+$('installClose').onclick = () => { $('installModal').hidden = true; };
+$('installModal').onclick = (e) => { if (e.target.id === 'installModal') $('installModal').hidden = true; };
+</script>
+</body>
+</html>

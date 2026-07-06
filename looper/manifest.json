@@ -1,0 +1,16 @@
+{
+  "name": "Etude · Looper",
+  "short_name": "Looper",
+  "description": "Loop, slow down, and transpose your own audio & video to practice. Runs entirely in your browser; files never leave your device.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6f6f7",
+  "theme_color": "#f6f6f7",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

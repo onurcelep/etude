@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Etude · tools for practicing musicians</title>
+<meta name="description" content="A small suite of private, offline, browser-based tools for practicing musicians. No accounts, no uploads." />
+<meta name="theme-color" content="#f6f6f7" id="themeColor" />
+<link rel="icon" href="looper/icon-192.png" />
+<script>/* set theme before paint to avoid a flash */try{var _t=localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<link rel="stylesheet" href="shared/theme.css" />
+<style>
+  .top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+       padding:16px 26px;background:color-mix(in srgb,var(--paper) 85%,transparent);
+       -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .top .tag{color:var(--mut);font-size:13px;border-left:1px solid var(--line-2);padding-left:14px}
+  .grow{flex:1}
+  @media (max-width:640px){ .top .tag{display:none} }
+
+  .wrap{max-width:1000px;margin:0 auto;padding:56px 26px 40px}
+  .hero h1{font-size:clamp(30px,6vw,46px);letter-spacing:-.01em;margin:0 0 14px;font-weight:600}
+  .hero p{font-size:16px;color:var(--mut);max-width:56ch;margin:0 0 8px;line-height:1.7}
+
+  .tools{margin-top:46px;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+  .tool{display:flex;flex-direction:column;gap:10px;padding:22px;border:1px solid var(--line);border-radius:var(--r);
+        background:var(--card);transition:border-color .15s,transform .15s;position:relative;min-height:150px}
+  a.tool:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .tool .g{font-size:26px;line-height:1;color:var(--accent)}
+  .tool h3{margin:0;font-size:17px;font-weight:600}
+  .tool p{margin:0;color:var(--mut);font-size:13.5px;line-height:1.6}
+  .tool .badge{position:absolute;top:18px;right:18px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
+        text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:99px;padding:3px 8px}
+  .tool.soon{opacity:.6;pointer-events:none}
+  .tool.soon .badge{color:var(--mut);border-color:var(--line-2)}
+
+  footer{max-width:1000px;margin:0 auto;padding:30px 26px 60px;color:var(--faint);font-size:12.5px;line-height:1.8}
+  footer a{color:var(--mut);border-bottom:1px solid var(--line-2)}
+  footer a:hover{color:var(--accent);border-color:var(--accent)}
+</style>
+</head>
+<body>
+  <div class="top">
+    <span class="brand"><span class="rep">𝄆</span><span class="title">ETUDE</span><span class="rep">𝄇</span></span>
+    <span class="tag">tools for practicing musicians</span>
+    <span class="grow"></span>
+    <button class="icon-btn" id="themeBtn" title="Switch light / dark" aria-label="Switch light or dark theme"></button>
+  </div>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>Practice tools that stay out of your way.</h1>
+      <p>A small suite of private, offline, browser-based tools for musicians. No accounts, no tracking. Everything runs right in your browser.</p>
+    </section>
+
+    <section class="tools">
+      <a class="tool" href="looper/">
+        <span class="badge">live</span>
+        <span class="g">𝄆𝄇</span>
+        <h3>Looper</h3>
+        <p>Loop a passage, slow it down, and change the key in your own video or audio.</p>
+      </a>
+
+      <div class="tool soon">
+        <span class="badge">soon</span>
+        <span class="g">◔</span>
+        <h3>Metronome</h3>
+        <p>Tempo, subdivisions, and tap. Simple and precise.</p>
+      </div>
+
+      <div class="tool soon">
+        <span class="badge">soon</span>
+        <span class="g">♪</span>
+        <h3>Tuner</h3>
+        <p>A chromatic tuner for your instrument, with adjustable reference pitch.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Runs entirely in your browser · no accounts, no tracking ·
+    <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener">source</a> (MIT) ·
+    <a href="https://buymeacoffee.com/onurcelep" target="_blank" rel="noopener">buy me a coffee</a>
+  </footer>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6"/></svg>';
+  const MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8 8 0 0 1 9.4 4 7 7 0 1 0 20 14.6z"/></svg>';
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    const tc = $('themeColor'); if (tc) tc.setAttribute('content', t === 'dark' ? '#121114' : '#f6f6f7');
+    const b = $('themeBtn'); if (b){ b.innerHTML = t === 'dark' ? SUN : MOON; b.title = t === 'dark' ? 'Switch to light' : 'Switch to dark'; }
+  }
+  $('themeBtn').onclick = () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('etude.theme', next); applyTheme(next);
+  };
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+</script>
+</body>
+</html>
