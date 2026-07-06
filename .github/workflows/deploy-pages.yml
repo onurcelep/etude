@@ -30,7 +30,7 @@ jobs:
         # not served here. .git and .github are build machinery, also excluded.
         run: |
           mkdir -p _site
-          rsync -a --exclude='.git' --exclude='.github' --exclude='extension' \
+          rsync -a --exclude='.git' --exclude='.github' --exclude='extensions' \
             --exclude='.superpowers' --exclude='CLAUDE.md' --exclude='_site' ./ _site/
       - name: Configure Pages
         uses: actions/configure-pages@v5

@@ -27,9 +27,9 @@ for BR in chrome firefox; do
     }
     fs.writeFileSync(process.argv[2] + "/manifest.json", JSON.stringify(m, null, 2) + "\n");
   ' "$BR" "$STAGE"
-  OUT="dist/etude-$BR-$VERSION.zip"
+  OUT="dist/etude-looper-$BR-$VERSION.zip"
   rm -f "$OUT"
-  ( cd "$STAGE" && zip -qr "../etude-$BR-$VERSION.zip" . )
+  ( cd "$STAGE" && zip -qr "../etude-looper-$BR-$VERSION.zip" . )
   rm -rf "$STAGE"
   echo "wrote $OUT"
 done

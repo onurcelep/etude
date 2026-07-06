@@ -79,7 +79,7 @@
 .et-byp{color:var(--et-mut);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px}
 .et-status{color:var(--et-accent);font-size:11px;margin-top:6px;min-height:0;word-break:break-word}
 .et-links{margin-top:9px;border-top:1px solid var(--et-line);padding-top:8px;
-  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:3px 6px;font-size:11px}
+  display:flex;flex-wrap:nowrap;justify-content:center;align-items:center;gap:7px;font-size:10.5px}
 .et-link{color:var(--et-accent);text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
 .et-link:hover{color:var(--et-accent-2)}
 .et-dot{color:var(--et-faint)}

@@ -35,7 +35,7 @@ cat <<EOF
 next steps (nothing was committed or uploaded):
   1. verify both browsers from the unpacked folder using extension/TESTING.md
   2. git add extension/manifest.json && git commit -m "[local] Extension v$NEW"
-  3. git tag etude-extension-v$NEW      (share later with: git push --tags)
-  4. Chrome Web Store  <- dist/etude-chrome-$NEW.zip
-     Firefox AMO       <- dist/etude-firefox-$NEW.zip
+  3. git tag looper-ext-v$NEW      (share later with: git push --tags)
+  4. Chrome Web Store  <- dist/etude-looper-chrome-$NEW.zip
+     Firefox AMO       <- dist/etude-looper-firefox-$NEW.zip
 EOF
