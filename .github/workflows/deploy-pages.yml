@@ -25,12 +25,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Assemble site
+        # The extension ships through the browser stores, not the website, so it is
+        # not served here. .git and .github are build machinery, also excluded.
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='.git' --exclude='.github' --exclude='extension' \
+            --exclude='.superpowers' --exclude='CLAUDE.md' --exclude='_site' ./ _site/
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

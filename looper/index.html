@@ -6,7 +6,7 @@
 <title>Etude · loop, slow down, transpose</title>
 <meta name="description" content="Loop, slow down, and transpose your own audio & video to practice. Private and offline, right in your browser." />
 <link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#f6f6f7" id="themeColor" />
+<meta name="theme-color" content="#efeee7" id="themeColor" />
 <script>/* set theme before paint to avoid a flash */try{var _t=localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <link rel="icon" href="icon-192.png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
@@ -14,21 +14,28 @@
 <meta name="apple-mobile-web-app-title" content="Etude" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <style>
-  /* Modern minimal. Light "Studio" (blue accent) ⇄ dark "Console" (amber). Sans UI, mono for data. */
+  /* Two identities, one tool. Light = "Score" (manuscript · rehearsal marks · Fraunces).
+     Dark = "Console" (boutique practice deck · amber). data-theme is always set before paint. */
+  @font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;
+    src:url("fonts/fraunces-roman.woff2") format("woff2")}
+  @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;
+    src:url("fonts/fraunces-italic.woff2") format("woff2")}
   :root{
-    --paper:#f6f6f7; --card:#ffffff; --paper-2:#eef0f2;
-    --ink:#101114; --mut:#83868c; --faint:#a9acb2;
-    --line:#e7e8ea; --line-2:#d7d9dc;
-    --accent:#2f5fe0; --accent-2:#244fc4; --accent-soft:rgba(47,95,224,.10);
+    /* SCORE (light): cool manuscript paper, ink text, rehearsal-pencil red as the one accent */
+    --paper:#efeee7; --card:#faf9f5; --paper-2:#e7e5db;
+    --ink:#17181c; --mut:#6f6e68; --faint:#a2a199;
+    --line:#dedcd2; --line-2:#cdcbbf;
+    --accent:#b3372b; --accent-2:#8f2b21; --accent-soft:rgba(179,55,43,.10); --red:#b3372b;
     --r:11px; --r-sm:7px;
     --mono:"SFMono-Regular",ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,"Courier New",monospace;
     --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+    --display:"Fraunces","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
   }
   [data-theme="dark"]{
     --paper:#121114; --card:#1a191e; --paper-2:#24222b;
     --ink:#eeecef; --mut:#918e98; --faint:#6a6772;
     --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.18);
-    --accent:#e6a94a; --accent-2:#f0b95e; --accent-soft:rgba(230,169,74,.15);
+    --accent:#e6a94a; --accent-2:#f0b95e; --accent-soft:rgba(230,169,74,.15); --red:#e0664f;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -237,6 +244,48 @@
     .card{padding:16px 16px}
     .row .lab{font-size:12px}
   }
+
+  /* =========================================================================
+     SCORE identity — light theme only. Manuscript paper, Fraunces display,
+     saved loops as rehearsal marks. Scoped to [data-theme="light"] so the
+     dark "Console" base is untouched until its own pass. Zero JS changes:
+     rehearsal letters come from a CSS counter, not the render code.
+     ========================================================================= */
+  #sections{counter-reset:mk}
+  .sec{counter-increment:mk}
+  [data-theme="dark"] .topbar .title{text-transform:uppercase}   /* console stays stenciled caps */
+
+  [data-theme="light"] .topbar{background:color-mix(in srgb,var(--paper) 88%,transparent)}
+  [data-theme="light"] .topbar .title{font-family:var(--display);font-weight:600;font-size:23px;
+    letter-spacing:0;text-transform:none;color:var(--ink)}
+  [data-theme="light"] .subapp{font-family:var(--display);font-weight:600;font-size:16px;letter-spacing:0}
+  [data-theme="light"] .subapp .subdesc{font-style:italic;font-weight:400;font-size:12.5px;letter-spacing:0}
+  [data-theme="light"] .card-title{font-family:var(--display);font-style:italic;font-weight:600;
+    font-size:17px;letter-spacing:0;text-transform:none;color:var(--ink)}
+  [data-theme="light"] .row .lab{font-family:var(--display);font-style:italic;font-size:15px;
+    text-transform:none;letter-spacing:0;color:var(--ink)}
+
+  /* timeline → a ruled manuscript rail; playhead + A/B already read red via --accent */
+  [data-theme="light"] #bar{height:34px;border-radius:3px;background:var(--card);
+    background-image:repeating-linear-gradient(to bottom,transparent 0 6px,var(--line-2) 6px 6.8px,transparent 6.8px 13px);
+    background-position:0 3px;background-repeat:repeat-x}
+
+  /* saved loops → rehearsal marks: boxed red letters via the CSS counter above */
+  [data-theme="light"] .sec{border:0;border-bottom:1px solid var(--line);border-radius:0;padding:11px 4px;gap:14px}
+  [data-theme="light"] .sec.active{background:var(--accent-soft)}
+  [data-theme="light"] .sec::before{content:counter(mk,upper-alpha);flex:none;width:24px;height:24px;
+    border:1.5px solid var(--red);color:var(--red);background:var(--card);border-radius:3px;
+    font-family:var(--display);font-weight:700;font-size:13px;display:grid;place-items:center}
+  [data-theme="light"] .sec.active::before{background:var(--red);color:var(--card)}
+  [data-theme="light"] .sec input.nm{font-family:var(--display);font-style:italic;font-size:14.5px}
+  [data-theme="light"] .sec .rng{font-family:var(--mono)}
+
+  /* audio-only art → note-stems (the middle note picked out in red) */
+  [data-theme="light"] #audioArt .wave span{width:2px;background:var(--ink);border-radius:1px;position:relative;opacity:1}
+  [data-theme="light"] #audioArt .wave span::after{content:"";position:absolute;left:-4px;bottom:-3px;
+    width:10px;height:8px;border-radius:50%;background:var(--ink);transform:rotate(-20deg)}
+  [data-theme="light"] #audioArt .wave span:nth-child(3),
+  [data-theme="light"] #audioArt .wave span:nth-child(3)::after{background:var(--red)}
 </style>
 </head>
 <body>
@@ -245,7 +294,7 @@
     <div class="topbar">
       <a class="brand" id="brand" href="../" title="Etude · all tools">
         <svg class="mark" viewBox="0 0 13 24" aria-hidden="true"><rect x="1" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/><rect x="4.6" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><circle cx="8" cy="9" r="1.3" fill="currentColor"/><circle cx="8" cy="15" r="1.3" fill="currentColor"/></svg>
-        <span class="title">ETUDE</span>
+        <span class="title">Étude</span>
         <svg class="mark" viewBox="0 0 13 24" aria-hidden="true"><circle cx="5" cy="9" r="1.3" fill="currentColor"/><circle cx="5" cy="15" r="1.3" fill="currentColor"/><rect x="7.1" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><rect x="9.4" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/></svg>
       </a>
       <span class="subapp">Looper<span class="subdesc" data-i18n="tagline">a looping practice tool</span></span>
@@ -346,7 +395,8 @@
     </div>
     <footer>
       <a href="#" id="installLink" data-i18n="install_app">install app</a> ·
-      <span data-i18n="privacy">runs entirely in your browser · files never leave your device</span><span id="engine"></span>
+      <span data-i18n="privacy">runs entirely in your browser · files never leave your device</span><span id="engine"></span> ·
+      <a href="https://onurcelep.github.io" target="_blank" rel="noopener">by Onur Celep</a><span id="getExt"></span>
     </footer>
   </main>
 </div>
@@ -379,7 +429,7 @@ const I18N = {
     set_btn:"set", clear_btn:"clear", save_loop:"save-loop", ov_a:"set A", ov_b:"set B",
     pitch_speed:"Pitch & Speed", transpose:"Transpose", pitch_lab:"Pitch", speed_lab:"Speed",
     reset:"reset", keep_pitch:"keep pitch", song_bpm:"song bpm", install_app:"install app",
-    privacy:"runs entirely in your browser · files never leave your device",
+    privacy:"runs entirely in your browser · files never leave your device", get_ext:"get the extension for online video",
     install_title:"Install Etude", saved_sessions:"Saved sessions",
     hint_none:"Set a start point (A) and an end point (B) to mark a section, then press the loop button to repeat it.",
     hint_a:"Start set at {a}. Now play to the end and press “set” on B.",
@@ -399,7 +449,7 @@ const I18N = {
     set_btn:"ayarla", clear_btn:"temizle", save_loop:"döngüyü kaydet", ov_a:"A ayarla", ov_b:"B ayarla",
     pitch_speed:"Perde & Hız", transpose:"Transpoze", pitch_lab:"İnce Ayar", speed_lab:"Hız",
     reset:"sıfırla", keep_pitch:"perdeyi koru", song_bpm:"parça bpm", install_app:"uygulamayı yükle",
-    privacy:"tamamen tarayıcınızda çalışır · dosyalar cihazınızdan çıkmaz",
+    privacy:"tamamen tarayıcınızda çalışır · dosyalar cihazınızdan çıkmaz", get_ext:"çevrimiçi video için eklentiyi edinin",
     install_title:"Etude’ü yükle", saved_sessions:"Kayıtlı oturumlar",
     hint_none:"Bir bölümü işaretlemek için başlangıç (A) ve bitiş (B) noktası koy, sonra tekrarlamak için döngü düğmesine bas.",
     hint_a:"Başlangıç {a} olarak ayarlandı. Şimdi sona kadar çal ve B için “ayarla”ya bas.",
@@ -419,7 +469,7 @@ const I18N = {
     set_btn:"setzen", clear_btn:"löschen", save_loop:"Loop speichern", ov_a:"A setzen", ov_b:"B setzen",
     pitch_speed:"Tonhöhe & Tempo", transpose:"Transponieren", pitch_lab:"Tonhöhe", speed_lab:"Tempo",
     reset:"zurücksetzen", keep_pitch:"Tonhöhe halten", song_bpm:"Song-BPM", install_app:"App installieren",
-    privacy:"läuft komplett im Browser · Dateien verlassen dein Gerät nie",
+    privacy:"läuft komplett im Browser · Dateien verlassen dein Gerät nie", get_ext:"Erweiterung für Online-Video holen",
     install_title:"Etude installieren", saved_sessions:"Gespeicherte Sitzungen",
     hint_none:"Setze einen Startpunkt (A) und einen Endpunkt (B), um einen Abschnitt zu markieren, und drücke dann die Loop-Taste zum Wiederholen.",
     hint_a:"Start bei {a} gesetzt. Spiele jetzt bis zum Ende und drücke bei B auf „setzen“.",
@@ -787,10 +837,12 @@ function startDrag(which, ev) {
     let t = Math.max(0, Math.min(pDur(), (x - r.left) / r.width * pDur()));
     if (which === 'A') { if (B != null) t = Math.min(t, B - 0.05); A = t; }
     else { if (A != null) t = Math.max(t, A + 0.05); B = t; }
+    if (activeSec) { const sec = sections.find(s => s.id === activeSec); if (sec) { sec.start = A; sec.end = B; } }   // live-edit the active saved loop so its marker + bounds follow the drag and persist
     updateAB(); persist();
   };
   const up = () => {
     h.classList.remove('drag');
+    if (activeSec) renderSections();   // refresh the saved-loop row's range text after a live edit
     document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up);
     document.removeEventListener('touchmove', move); document.removeEventListener('touchend', up);
   };
@@ -839,7 +891,7 @@ function renderSections() {
       '<button class="icon" title="Play this section">&#9205;</button>' +
       '<input class="nm" value="">' +
       '<span class="rng">' + fmt(s.start) + ' → ' + fmt(s.end) + '</span>' +
-      '<button class="icon" title="Update A/B from this">&#8631;</button>' +
+      '<button class="icon" title="Save the current A–B into this loop">&#8631;</button>' +
       '<button class="icon" title="Delete">&#128465;</button>';
     const [playB, nm, , updB, delB] = row.children;
     nm.value = s.name;
@@ -985,7 +1037,7 @@ const ICON_SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" st
 const ICON_MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8 8 0 0 1 9.4 4 7 7 0 1 0 20 14.6z"/></svg>';
 function applyTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
-  const tc = $('themeColor'); if (tc) tc.setAttribute('content', t === 'dark' ? '#121114' : '#f6f6f7');
+  const tc = $('themeColor'); if (tc) tc.setAttribute('content', t === 'dark' ? '#121114' : '#efeee7');
   const b = $('themeBtn'); if (b) { b.innerHTML = t === 'dark' ? ICON_SUN : ICON_MOON; b.title = t === 'dark' ? 'Switch to light' : 'Switch to dark'; }
 }
 $('themeBtn').onclick = () => {
@@ -1002,6 +1054,25 @@ try {
 } catch (e) { lang = 'en'; }
 if (!I18N[lang]) lang = 'en';
 $('langSel').onchange = () => setLang($('langSel').value);
+// Cross-link to the browser extension for online video. Desktop only (extensions
+// cannot run on iPad or phones, where this PWA is the tool). Store URLs are filled
+// in when the extension is published; empty means the link stays hidden.
+const EXT_STORES = { chrome: '', firefox: '' };
+(function mountGetExt() {
+  const slot = $('getExt'); if (!slot) return;
+  const ua = navigator.userAgent;
+  const mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.userAgentData && navigator.userAgentData.mobile);
+  if (mobile) return;
+  let url = '';
+  if (/Firefox/i.test(ua)) url = EXT_STORES.firefox;
+  else if (/Chrome|Chromium|Edg|OPR/i.test(ua)) url = EXT_STORES.chrome;
+  if (!url) return;
+  const a = document.createElement('a');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  a.setAttribute('data-i18n', 'get_ext');
+  slot.textContent = ' · ';
+  slot.appendChild(a);
+})();
 applyLang();
 
 updateSaveUI();

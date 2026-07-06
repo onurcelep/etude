@@ -1,8 +1,9 @@
 /* Etude Looper service worker: offline app shell (scope /looper/).
    Bump CACHE when you want clients to refresh cached assets.
    The activate step deletes any other cache (including the old root 'etude-v5'). */
-const CACHE = 'etude-looper-v5';
-const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './signalsmith-stretch.mjs'];
+const CACHE = 'etude-looper-v7';
+const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './signalsmith-stretch.mjs',
+                './fonts/fraunces-roman.woff2', './fonts/fraunces-italic.woff2'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
