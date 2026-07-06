@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Etude · transpose, slow down, loop",
-  "version": "0.1.0",
+  "name": "Etude · Looper - transpose, slow down, loop",
+  "version": "0.1.1",
   "description": "Practice with online video: change the key, slow down without changing pitch, and loop sections. Audio is processed locally in your browser.",
   "icons": {
     "16": "icons/icon-16.png",

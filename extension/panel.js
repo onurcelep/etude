@@ -105,7 +105,10 @@ globalThis.EtudePanel = (() => {
     root = el('div', 'et-panel');
     const head = el('div', 'et-head');
     const brandWrap = el('div', 'et-brandwrap');
-    brandWrap.appendChild(el('span', 'et-brand', '𝄆 Étude 𝄇'));
+    const brandLine = el('div', 'et-brandline');
+    brandLine.appendChild(el('span', 'et-brand', '𝄆 Étude 𝄇'));
+    brandLine.appendChild(el('span', 'et-subapp', 'Looper'));   // Etude is the umbrella; this is the Looper
+    brandWrap.appendChild(brandLine);
     const by = el('a', 'et-by', 'by Onur Celep');
     by.href = 'https://onurcelep.github.io'; by.target = '_blank'; by.rel = 'noopener';
     brandWrap.appendChild(by);

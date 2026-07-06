@@ -31,7 +31,9 @@
 .et-head{display:flex;align-items:flex-start;justify-content:space-between;cursor:grab;
   margin:-2px 0 8px;touch-action:none}
 .et-brandwrap{display:flex;flex-direction:column;line-height:1.15}
+.et-brandline{display:flex;align-items:center;gap:7px}
 .et-brand{color:var(--et-accent);letter-spacing:.18em;font-size:12px;font-weight:600}
+.et-subapp{color:var(--et-mut);font-size:11px;border-left:1px solid var(--et-line-2);padding-left:7px}
 .et-by{font-size:9px;color:var(--et-faint);text-decoration:none;letter-spacing:.02em}
 .et-by:hover{color:var(--et-accent)}
 .et-hctl{display:flex;align-items:center;gap:5px}
