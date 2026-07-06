@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Etude · tools for practicing musicians</title>
 <meta name="description" content="A small suite of private, offline, browser-based tools for practicing musicians. No accounts, no uploads." />
-<meta name="theme-color" content="#f6f6f7" id="themeColor" />
+<meta name="theme-color" content="#efeee7" id="themeColor" />
 <link rel="icon" href="looper/icon-192.png" />
 <script>/* set theme before paint to avoid a flash */try{var _t=localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <link rel="stylesheet" href="shared/theme.css" />
@@ -36,11 +36,19 @@
   footer{max-width:1000px;margin:0 auto;padding:30px 26px 60px;color:var(--faint);font-size:12.5px;line-height:1.8}
   footer a{color:var(--mut);border-bottom:1px solid var(--line-2)}
   footer a:hover{color:var(--accent);border-color:var(--accent)}
+
+  /* dual identity: serif headings (Score) · hardware panels (Console) */
+  .hero h1{font-family:var(--display);font-weight:600}
+  .tool h3{font-family:var(--display)}
+  [data-theme="dark"] .top{background:rgba(20,19,25,.82)}
+  [data-theme="dark"] .tool{background:linear-gradient(180deg,#221f28,#191820);border-color:rgba(255,255,255,.07);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 14px 34px -24px #000}
+  [data-theme="dark"] a.tool:hover{border-color:var(--accent)}
 </style>
 </head>
 <body>
   <div class="top">
-    <span class="brand"><span class="rep">𝄆</span><span class="title">ETUDE</span><span class="rep">𝄇</span></span>
+    <span class="brand"><svg class="mark" viewBox="0 0 13 24" aria-hidden="true"><rect x="1" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/><rect x="4.6" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><circle cx="8" cy="9" r="1.3" fill="currentColor"/><circle cx="8" cy="15" r="1.3" fill="currentColor"/></svg><span class="title">Étude</span><svg class="mark" viewBox="0 0 13 24" aria-hidden="true"><circle cx="5" cy="9" r="1.3" fill="currentColor"/><circle cx="5" cy="15" r="1.3" fill="currentColor"/><rect x="7.1" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><rect x="9.4" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/></svg></span>
     <span class="tag">tools for practicing musicians</span>
     <span class="grow"></span>
     <button class="icon-btn" id="themeBtn" title="Switch light / dark" aria-label="Switch light or dark theme"></button>
@@ -89,7 +97,7 @@
   const MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8 8 0 0 1 9.4 4 7 7 0 1 0 20 14.6z"/></svg>';
   function applyTheme(t){
     document.documentElement.setAttribute('data-theme', t);
-    const tc = $('themeColor'); if (tc) tc.setAttribute('content', t === 'dark' ? '#121114' : '#f6f6f7');
+    const tc = $('themeColor'); if (tc) tc.setAttribute('content', t === 'dark' ? '#121114' : '#efeee7');
     const b = $('themeBtn'); if (b){ b.innerHTML = t === 'dark' ? SUN : MOON; b.title = t === 'dark' ? 'Switch to light' : 'Switch to dark'; }
   }
   $('themeBtn').onclick = () => {

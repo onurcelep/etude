@@ -92,7 +92,7 @@ globalThis.EtudePanel = (() => {
     root = el('div', 'et-panel');
     const head = el('div', 'et-head');
     const brandWrap = el('div', 'et-brandwrap');
-    brandWrap.appendChild(el('span', 'et-brand', '𝄆 ETUDE 𝄇'));
+    brandWrap.appendChild(el('span', 'et-brand', '𝄆 Étude 𝄇'));
     const by = el('a', 'et-by', 'by Onur Celep');
     by.href = 'https://onurcelep.github.io'; by.target = '_blank'; by.rel = 'noopener';
     brandWrap.appendChild(by);

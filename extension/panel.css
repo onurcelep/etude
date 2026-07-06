@@ -1,65 +1,79 @@
-/* Etude extension panel. All selectors are .et- prefixed to avoid page collisions. */
+/* Etude extension panel — Console identity. Selectors are .et- prefixed to avoid
+   page collisions; colours are centralised as --et-* tokens carrying the app's
+   dark "Console" values (prefixed so they can't clash with the host page). */
+:root{
+  --et-bg:#121114; --et-card:#1a191e; --et-raise:#221f28; --et-panel-2:#24222b;
+  --et-ink:#eeecef; --et-mut:#918e98; --et-faint:#6a6772;
+  --et-accent:#e6a94a; --et-accent-2:#f0b95e; --et-on-ink:#161418;
+  --et-line:rgba(255,255,255,.09); --et-line-2:rgba(255,255,255,.18);
+  --et-mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --et-ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+}
 .et-chip{position:fixed;right:18px;bottom:18px;z-index:2147483646;width:52px;height:52px;
-  border-radius:15px;border:1px solid rgba(255,255,255,.18);background:#1a191e;color:#e6a94a;
+  border-radius:15px;border:1px solid var(--et-line-2);color:var(--et-accent);
+  background:linear-gradient(180deg,var(--et-raise),var(--et-card));
   display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;
   user-select:none;box-shadow:0 6px 24px rgba(0,0,0,.5)}
-.et-chip:hover{background:#24222b}
+.et-chip:hover{background:var(--et-panel-2)}
 .et-chip:active{cursor:grabbing}
 .et-chip-logo{font-size:17px;pointer-events:none}
 .et-chip-x{position:absolute;top:-7px;right:-7px;width:18px;height:18px;border-radius:50%;
-  background:#24222b;border:1px solid rgba(255,255,255,.2);color:#918e98;font-size:12px;
+  background:var(--et-panel-2);border:1px solid var(--et-line-2);color:var(--et-mut);font-size:12px;
   line-height:15px;text-align:center;opacity:0;transition:opacity .12s;cursor:pointer}
 .et-chip:hover .et-chip-x{opacity:1}
-.et-chip-x:hover{color:#e6a94a}
+.et-chip-x:hover{color:var(--et-accent)}
 .et-panel{position:fixed;right:18px;bottom:74px;z-index:2147483647;display:none;width:264px;
-  background:#1a191e;color:#eeecef;border:1px solid rgba(255,255,255,.12);border-radius:11px;
-  font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  color:var(--et-ink);border:1px solid var(--et-line-2);border-radius:11px;
+  background:linear-gradient(180deg,var(--et-raise),var(--et-card));
+  font:13px/1.5 var(--et-ui);
   box-shadow:0 10px 36px rgba(0,0,0,.55);padding:12px 14px 10px;user-select:none}
 .et-panel.et-open{display:block}
 .et-head{display:flex;align-items:flex-start;justify-content:space-between;cursor:grab;
   margin:-2px 0 8px;touch-action:none}
 .et-brandwrap{display:flex;flex-direction:column;line-height:1.15}
-.et-brand{color:#e6a94a;letter-spacing:.18em;font-size:12px;font-weight:600}
-.et-by{font-size:9px;color:#6a6772;text-decoration:none;letter-spacing:.02em}
-.et-by:hover{color:#e6a94a}
+.et-brand{color:var(--et-accent);letter-spacing:.18em;font-size:12px;font-weight:600}
+.et-by{font-size:9px;color:var(--et-faint);text-decoration:none;letter-spacing:.02em}
+.et-by:hover{color:var(--et-accent)}
 .et-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(12px);
-  z-index:2147483647;max-width:340px;background:#1a191e;color:#eeecef;
-  border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:11px 15px;
-  font:13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  z-index:2147483647;max-width:340px;color:var(--et-ink);
+  background:linear-gradient(180deg,var(--et-raise),var(--et-card));
+  border:1px solid var(--et-line-2);border-radius:10px;padding:11px 15px;
+  font:13px/1.45 var(--et-ui);
   box-shadow:0 10px 36px rgba(0,0,0,.55);opacity:0;pointer-events:none;
   transition:opacity .2s,transform .2s}
 .et-toast.et-show{opacity:1;transform:translateX(-50%) translateY(0)}
-.et-x{border:0;background:transparent;color:#918e98;font-size:16px;cursor:pointer;padding:2px 6px}
-.et-x:hover{color:#eeecef}
+.et-x{border:0;background:transparent;color:var(--et-mut);font-size:16px;cursor:pointer;padding:2px 6px}
+.et-x:hover{color:var(--et-ink)}
 .et-row{display:grid;grid-template-columns:70px 24px 1fr 22px 24px 20px;gap:6px;align-items:center;margin:7px 0}
-.et-row .et-lab{color:#918e98;font-size:12px;text-transform:lowercase}
-.et-row .et-val{text-align:right;font-variant-numeric:tabular-nums}
-.et-row .et-unit{color:#6a6772;font-size:11px}
+.et-row .et-lab{color:var(--et-mut);font-size:12px;text-transform:lowercase}
+.et-row .et-val{text-align:right;font-family:var(--et-mono);font-variant-numeric:tabular-nums;color:var(--et-accent)}
+.et-row .et-unit{color:var(--et-faint);font-size:11px}
 .et-row.et-off{opacity:.4;pointer-events:none}
-.et-step{width:24px;height:24px;border:0;border-radius:7px;background:#24222b;color:#eeecef;
-  font-size:15px;cursor:pointer;padding:0}
-.et-step:hover{color:#e6a94a}
-.et-rst{width:20px;height:20px;border:0;background:transparent;color:#6a6772;font-size:13px;cursor:pointer;padding:0;line-height:1}
-.et-rst:hover{color:#e6a94a}
-.et-btn{border:1px solid rgba(255,255,255,.18);background:transparent;color:#eeecef;
+.et-step{width:24px;height:24px;border:1px solid var(--et-line);border-radius:7px;color:var(--et-ink);
+  background:linear-gradient(180deg,#2b2931,#1d1b22);
+  font-size:15px;cursor:pointer;padding:0;box-shadow:0 1px 0 rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05)}
+.et-step:hover{color:var(--et-accent);border-color:var(--et-accent)}
+.et-rst{width:20px;height:20px;border:0;background:transparent;color:var(--et-faint);font-size:13px;cursor:pointer;padding:0;line-height:1}
+.et-rst:hover{color:var(--et-accent)}
+.et-btn{border:1px solid var(--et-line-2);background:transparent;color:var(--et-ink);
   border-radius:7px;padding:4px 9px;font-size:12px;cursor:pointer}
-.et-btn:hover{border-color:#e6a94a;color:#e6a94a}
-.et-btn.et-on{background:#e6a94a;border-color:#e6a94a;color:#161418}
-.et-loop{border-top:1px solid rgba(255,255,255,.09);margin-top:9px;padding-top:9px}
+.et-btn:hover{border-color:var(--et-accent);color:var(--et-accent)}
+.et-btn.et-on{background:var(--et-accent);border-color:var(--et-accent);color:var(--et-on-ink)}
+.et-loop{border-top:1px solid var(--et-line);margin-top:9px;padding-top:9px}
 .et-ab{display:flex;align-items:center;gap:6px}
-.et-time{font-variant-numeric:tabular-nums;color:#918e98;font-size:12px;min-width:44px}
+.et-time{font-family:var(--et-mono);font-variant-numeric:tabular-nums;color:var(--et-mut);font-size:12px;min-width:44px}
 .et-save{display:flex;gap:6px;margin-top:8px}
-.et-name{flex:1;min-width:0;background:#121114;border:1px solid rgba(255,255,255,.18);
-  border-radius:7px;color:#eeecef;padding:4px 8px;font-size:12px}
+.et-name{flex:1;min-width:0;background:var(--et-bg);border:1px solid var(--et-line-2);
+  border-radius:7px;color:var(--et-ink);padding:4px 8px;font-size:12px}
 .et-list{margin-top:6px;max-height:120px;overflow:auto}
 .et-item{display:flex;align-items:center;gap:4px;margin:4px 0}
 .et-item .et-go{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .et-foot{display:flex;align-items:center;justify-content:space-between;margin-top:9px;
-  border-top:1px solid rgba(255,255,255,.09);padding-top:8px}
-.et-byp{color:#918e98;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px}
-.et-status{color:#e6a94a;font-size:11px;margin-top:6px;min-height:0;word-break:break-word}
-.et-links{margin-top:9px;border-top:1px solid rgba(255,255,255,.09);padding-top:8px;
+  border-top:1px solid var(--et-line);padding-top:8px}
+.et-byp{color:var(--et-mut);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px}
+.et-status{color:var(--et-accent);font-size:11px;margin-top:6px;min-height:0;word-break:break-word}
+.et-links{margin-top:9px;border-top:1px solid var(--et-line);padding-top:8px;
   text-align:center;font-size:11px}
-.et-link{color:#918e98;text-decoration:none}
-.et-link:hover{color:#e6a94a}
+.et-link{color:var(--et-mut);text-decoration:none}
+.et-link:hover{color:var(--et-accent)}
 .et-dot{color:#3a3842;margin:0 7px}
