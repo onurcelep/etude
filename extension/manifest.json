@@ -34,6 +34,10 @@
     }
   ],
   "browser_specific_settings": {
-    "gecko": { "id": "etude-extension@onurcelep.dev", "strict_min_version": "128.0" }
+    "gecko": {
+      "id": "etude-extension@onurcelep.dev",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": { "required": ["none"] }
+    }
   }
 }
