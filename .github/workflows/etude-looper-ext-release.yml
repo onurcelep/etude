@@ -1,6 +1,6 @@
 name: Build Looper extension release zips
 
-# Fires only when a Looper-extension version tag is pushed (looper-ext-v1.2.3).
+# Fires only when a Looper-extension version tag is pushed (etude-looper-ext-v1.2.3).
 # It builds the two warning-free store zips and attaches them to a GitHub Release.
 # It does NOT publish to the Chrome Web Store or AMO: you download the zips from
 # the release and upload them yourself. Pushing to main is unaffected (that is the
@@ -8,7 +8,7 @@ name: Build Looper extension release zips
 on:
   push:
     tags:
-      - 'looper-ext-v*'
+      - 'etude-looper-ext-v*'
 
 permissions:
   contents: write   # needed to create the release and attach the zips

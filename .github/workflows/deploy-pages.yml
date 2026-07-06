@@ -3,6 +3,11 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+    # The extension and CI machinery are not served, so pushes touching only those
+    # should not trigger a site deploy.
+    paths-ignore:
+      - 'extensions/**'
+      - '.github/**'
   workflow_dispatch:
 
 # Allow the deploy job to publish to Pages
