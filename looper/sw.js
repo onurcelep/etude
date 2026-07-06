@@ -1,7 +1,7 @@
 /* Etude Looper service worker: offline app shell (scope /looper/).
    Bump CACHE when you want clients to refresh cached assets.
    The activate step deletes any other cache (including the old root 'etude-v5'). */
-const CACHE = 'etude-looper-v7';
+const CACHE = 'etude-looper-v9';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './signalsmith-stretch.mjs',
                 './fonts/fraunces-roman.woff2', './fonts/fraunces-italic.woff2'];
 

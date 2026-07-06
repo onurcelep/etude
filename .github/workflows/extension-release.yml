@@ -1,0 +1,36 @@
+name: Build extension release zips
+
+# Fires only when an extension version tag is pushed (etude-extension-v1.2.3).
+# It builds the two warning-free store zips and attaches them to a GitHub Release.
+# It does NOT publish to the Chrome Web Store or AMO: you download the zips from
+# the release and upload them yourself. Pushing to main is unaffected (that is the
+# separate Pages deploy, which excludes /extension/).
+on:
+  push:
+    tags:
+      - 'etude-extension-v*'
+
+permissions:
+  contents: write   # needed to create the release and attach the zips
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Build per-browser store zips
+        run: cd extension && sh pack.sh
+      - name: Publish GitHub Release with the zips
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            extension/dist/etude-chrome-*.zip \
+            extension/dist/etude-firefox-*.zip \
+            --title "Extension ${{ github.ref_name }}" \
+            --notes "Store zips built from ${{ github.ref_name }}. Upload etude-chrome-*.zip to the Chrome Web Store and etude-firefox-*.zip to Firefox AMO. This does not publish to the stores."

@@ -20,6 +20,11 @@
   const E = globalThis.EtudeEngine, P = globalThis.EtudePanel, L = globalThis.EtudeLoop;
   const api = (typeof browser !== 'undefined' ? browser : chrome);
   const store = api.storage.local;
+  // After the extension is reloaded/updated, this old content script keeps running
+  // but its chrome.* context is gone, so any API call throws "Extension context
+  // invalidated". alive() detects that; saveState() writes only while still valid.
+  const alive = () => { try { return !!(api.runtime && api.runtime.id); } catch (e) { return false; } };
+  const saveState = o => { if (alive()) { try { store.set(o); } catch (e) {} } };
   const getVideo = () =>
     document.querySelector('video.html5-main-video') || document.querySelector('video');
 
@@ -69,14 +74,15 @@
       E.setTranspose(0); E.setPitchCents(0); applySpeed(100); L.clear();
       P.setState({ transpose: 0, cents: 0, speedPct: 100, status: '' });
     },
-    onMoveChip: pos => { store.set({ etudeChipPos: pos }); },
+    onMoveChip: pos => { saveState({ etudeChipPos: pos }); },
+    onLang: code => { saveState({ etudeLang: code }); },
     onClose: () => {                       // user hid Etude completely
       shown = false;
-      store.set({ etudeShown: false });
+      saveState({ etudeShown: false });
       P.setVisible(false);
       if (!hintShown) {                    // teach the re-open path once
         hintShown = true;
-        store.set({ etudeHintShown: true });
+        saveState({ etudeHintShown: true });
         P.toast(P.t('hidden_hint'));
       }
     }
@@ -86,7 +92,7 @@
   api.runtime.onMessage.addListener(msg => {
     if (!msg || msg.type !== 'etude-toggle') return;
     shown = !shown;
-    store.set({ etudeShown: shown });
+    saveState({ etudeShown: shown });
     P.setVisible(shown);
   });
 
@@ -113,18 +119,20 @@
   }
 
   window.addEventListener('yt-navigate-finish', onNavigate);
-  setInterval(() => {                           // fallback if the event ever changes
+  const navTimer = setInterval(() => {          // fallback if the event ever changes
+    if (!alive()) { clearInterval(navTimer); return; }   // stop cleanly after an extension reload
     if (getVideoId(location.href) !== currentId) onNavigate();
   }, 1500);
 
   P.mount();
   // Restore visibility, chip position, and the one-time hint flag.
   // Default shown = true (design A: visible on first visit so musicians discover it).
-  Promise.resolve(store.get(['etudeShown', 'etudeChipPos', 'etudeHintShown']))
+  Promise.resolve(store.get(['etudeShown', 'etudeChipPos', 'etudeHintShown', 'etudeLang']))
     .then(s => {
       shown = s.etudeShown !== false;
       hintShown = !!s.etudeHintShown;
       if (s.etudeChipPos) P.setChipPos(s.etudeChipPos);
+      if (s.etudeLang) P.setLang(s.etudeLang);   // manual choice overrides the page default
       P.setVisible(shown);
     })
     .catch(() => P.setVisible(true));

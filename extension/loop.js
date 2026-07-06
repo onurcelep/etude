@@ -26,20 +26,24 @@ globalThis.EtudeLoop = (() => {
   function unwatch() { if (video) video.removeEventListener('timeupdate', tick); video = null; }
   function getState() { return { a, b, enabled }; }
 
+  // Storage can throw "Extension context invalidated" after an extension reload;
+  // swallow it and degrade to an empty list rather than an uncaught rejection.
   async function list(id) {
-    const o = await store().get(key(id));
-    return o[key(id)] || [];
+    try {
+      const o = await store().get(key(id));
+      return o[key(id)] || [];
+    } catch (e) { return []; }
   }
   async function save(id, name) {
     if (a == null || b == null || b <= a) return list(id);
     const loops = (await list(id)).filter(l => l.name !== name);
     loops.push({ name, a, b });
-    await store().set({ [key(id)]: loops });
+    try { await store().set({ [key(id)]: loops }); } catch (e) {}
     return loops;
   }
   async function remove(id, name) {
     const loops = (await list(id)).filter(l => l.name !== name);
-    await store().set({ [key(id)]: loops });
+    try { await store().set({ [key(id)]: loops }); } catch (e) {}
     return loops;
   }
 

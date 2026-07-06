@@ -8,7 +8,7 @@ globalThis.EtudePanel = (() => {
           set: 'set', loop_on: 'loop: on', loop_off: 'loop: off',
           save_loop: 'save loop', loop_name: 'loop name', saved: 'saved loops',
           bypass: 'original audio', reset: 'reset', del: 'delete',
-          local_looper: 'Looper for local files', coffee: 'buy me a coffee',
+          local_looper: 'open local file', coffee: 'buy me coffee',
           hidden_hint: 'Etude is hidden. Click the puzzle icon in your browser toolbar to bring it back.',
           no_audio: 'Cannot process this audio here. Speed and loop still work.',
           no_engine: 'Pitch engine unavailable. Speed and loop still work.' },
@@ -16,7 +16,7 @@ globalThis.EtudePanel = (() => {
           set: 'ayarla', loop_on: 'döngü: açık', loop_off: 'döngü: kapalı',
           save_loop: 'döngüyü kaydet', loop_name: 'döngü adı', saved: 'kayıtlı döngüler',
           bypass: 'orijinal ses', reset: 'sıfırla', del: 'sil',
-          local_looper: 'yerel dosyalar için Looper', coffee: 'bana bir kahve ısmarla',
+          local_looper: 'lokal dosya aç', coffee: 'destek ol',
           hidden_hint: 'Etude gizlendi. Geri getirmek için tarayıcı araç çubuğundaki yapboz simgesine tıklayın.',
           no_audio: 'Bu ses burada işlenemiyor. Hız ve döngü çalışmaya devam eder.',
           no_engine: 'Ses motoru kullanılamıyor. Hız ve döngü çalışmaya devam eder.' },
@@ -24,16 +24,27 @@ globalThis.EtudePanel = (() => {
           set: 'setzen', loop_on: 'loop: an', loop_off: 'loop: aus',
           save_loop: 'loop speichern', loop_name: 'loop-name', saved: 'gespeicherte loops',
           bypass: 'originalton', reset: 'zurücksetzen', del: 'löschen',
-          local_looper: 'Looper für lokale Dateien', coffee: 'spendier mir einen Kaffee',
+          local_looper: 'lokale Datei öffnen', coffee: 'unterstützen',
           hidden_hint: 'Etude ist ausgeblendet. Klicke auf das Puzzle-Symbol in der Symbolleiste, um es zurückzuholen.',
           no_audio: 'Dieser Ton kann hier nicht verarbeitet werden. Tempo und Loop funktionieren weiter.',
           no_engine: 'Audio-Engine nicht verfügbar. Tempo und Loop funktionieren weiter.' }
   };
-  const lang = (() => {
-    const l = (globalThis.navigator && navigator.language || 'en').slice(0, 2).toLowerCase();
+  // Default language follows the page: YouTube's interface language (<html lang>),
+  // then the browser language, then English. A saved manual choice overrides this
+  // later via setLang.
+  function detectLang() {
+    const src = (globalThis.document && document.documentElement.lang) ||
+                (globalThis.navigator && navigator.language) || 'en';
+    const l = src.slice(0, 2).toLowerCase();
     return I18N[l] ? l : 'en';
-  })();
+  }
+  let lang = detectLang();
   const t = k => (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k;
+
+  // Re-translatable elements: each registered fn re-applies t() when the language changes.
+  const trFns = [];
+  const trReg = fn => { fn(); trFns.push(fn); };
+  const relabel = () => trFns.forEach(fn => fn());
 
   function formatTime(x) {
     if (x == null || !isFinite(x)) return '--:--';
@@ -44,7 +55,7 @@ globalThis.EtudePanel = (() => {
   const state = { transpose: 0, cents: 0, speedPct: 100, a: null, b: null,
                   loopOn: false, loops: [], status: '', pitchDisabled: false, bypassed: false };
   let H = {};                    // intent handlers
-  let root = null, chip = null;
+  let root = null, chip = null, langSel = null;
 
   const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
   const emit = (name, ...args) => { if (H[name]) H[name](...args); };
@@ -59,13 +70,15 @@ globalThis.EtudePanel = (() => {
 
   function stepRow(labelKey, unit, get, set, step, lo, hi, def) {
     const row = el('div', 'et-row');
-    row.appendChild(el('span', 'et-lab', t(labelKey)));
+    const lab = el('span', 'et-lab');
+    trReg(() => lab.textContent = t(labelKey));
+    row.appendChild(lab);
     const minus = el('button', 'et-step', '−');
     const val = el('span', 'et-val', '');
     const un = el('span', 'et-unit', unit);
     const plus = el('button', 'et-step', '+');
     const rst = el('button', 'et-rst', '↺');    // per-parameter reset, shown only when off default
-    rst.title = t('reset');
+    trReg(() => rst.title = t('reset'));
     minus.onclick = () => { emit('onOpen'); set(clamp(get() - step, lo, hi)); };
     plus.onclick = () => { emit('onOpen'); set(clamp(get() + step, lo, hi)); };
     rst.onclick = () => { emit('onOpen'); set(def); };
@@ -97,15 +110,22 @@ globalThis.EtudePanel = (() => {
     by.href = 'https://onurcelep.github.io'; by.target = '_blank'; by.rel = 'noopener';
     brandWrap.appendChild(by);
     head.appendChild(brandWrap);
+    const hctl = el('div', 'et-hctl');
+    langSel = el('select', 'et-lang');
+    langSel.title = 'Language';
+    ['en', 'tr', 'de'].forEach(c => { const o = el('option', null, c.toUpperCase()); o.value = c; langSel.appendChild(o); });
+    langSel.value = lang;
+    langSel.onchange = () => setLang(langSel.value, true);
     const close = el('button', 'et-x', '×');
     close.onclick = () => root.classList.remove('et-open');
-    head.appendChild(close);
+    hctl.append(langSel, close);
+    head.appendChild(hctl);
     root.appendChild(head);
 
     // place the panel next to the chip (above if there is room, else below)
     function positionPanel() {
       const r = chip.getBoundingClientRect();
-      const pw = root.offsetWidth || 264, ph = root.offsetHeight || 320;
+      const pw = root.offsetWidth || 284, ph = root.offsetHeight || 320;
       let top = r.top - ph - 8;
       if (top < 8) top = r.bottom + 8;
       top = Math.max(8, Math.min(top, window.innerHeight - ph - 8));   // keep fully on screen
@@ -121,7 +141,7 @@ globalThis.EtudePanel = (() => {
     // drag the panel by its header (ignore the close button and the by-link)
     let drag = null;
     head.onpointerdown = e => {
-      if (e.target === close || e.target.closest('a')) return;
+      if (e.target.closest('.et-hctl') || e.target.closest('a')) return;
       drag = { x: e.clientX - root.offsetLeft, y: e.clientY - root.offsetTop };
       head.setPointerCapture(e.pointerId);
     };
@@ -174,7 +194,7 @@ globalThis.EtudePanel = (() => {
     const aBtn = el('button', 'et-btn', 'A'); const aVal = el('span', 'et-time', '--:--');
     const bBtn = el('button', 'et-btn', 'B'); const bVal = el('span', 'et-time', '--:--');
     const tog = el('button', 'et-btn et-tog', t('loop_off'));
-    aBtn.title = t('set') + ' A'; bBtn.title = t('set') + ' B';
+    trReg(() => { aBtn.title = t('set') + ' A'; bBtn.title = t('set') + ' B'; });
     aBtn.onclick = () => { emit('onOpen'); emit('onSetA'); };
     bBtn.onclick = () => { emit('onOpen'); emit('onSetB'); };
     tog.onclick = () => { emit('onOpen'); emit('onToggleLoop', !state.loopOn); };
@@ -183,8 +203,9 @@ globalThis.EtudePanel = (() => {
 
     const saveRow = el('div', 'et-save');
     const nameIn = el('input', 'et-name');
-    nameIn.placeholder = t('loop_name');
-    const saveBtn = el('button', 'et-btn', t('save_loop'));
+    trReg(() => nameIn.placeholder = t('loop_name'));
+    const saveBtn = el('button', 'et-btn');
+    trReg(() => saveBtn.textContent = t('save_loop'));
     saveBtn.onclick = () => { if (nameIn.value.trim()) { emit('onSaveLoop', nameIn.value.trim()); nameIn.value = ''; } };
     saveRow.append(nameIn, saveBtn);
     loop.appendChild(saveRow);
@@ -198,8 +219,11 @@ globalThis.EtudePanel = (() => {
     const byp = el('label', 'et-byp');
     const bypIn = el('input'); bypIn.type = 'checkbox';
     bypIn.onchange = () => { emit('onOpen'); emit('onBypass', bypIn.checked); };
-    byp.append(bypIn, document.createTextNode(' ' + t('bypass')));
-    const reset = el('button', 'et-btn', t('reset'));
+    const bypLab = el('span');
+    trReg(() => bypLab.textContent = t('bypass'));
+    byp.append(bypIn, bypLab);
+    const reset = el('button', 'et-btn');
+    trReg(() => reset.textContent = t('reset'));
     reset.onclick = () => { emit('onOpen'); emit('onReset'); };
     foot.append(byp, reset);
     root.appendChild(foot);
@@ -208,10 +232,12 @@ globalThis.EtudePanel = (() => {
 
     // links: the web Looper (for local files) and support
     const links = el('div', 'et-links');
-    const looper = el('a', 'et-link', t('local_looper'));
+    const looper = el('a', 'et-link');
+    trReg(() => looper.textContent = '📂 ' + t('local_looper'));
     looper.href = 'https://onurcelep.github.io/etude/looper/';
     looper.target = '_blank'; looper.rel = 'noopener';
-    const coffee = el('a', 'et-link', '☕ ' + t('coffee'));
+    const coffee = el('a', 'et-link');
+    trReg(() => coffee.textContent = '☕ ' + t('coffee'));
     coffee.href = 'https://buymeacoffee.com/onurcelep';
     coffee.target = '_blank'; coffee.rel = 'noopener';
     links.append(looper, el('span', 'et-dot', '·'), coffee);
@@ -271,8 +297,18 @@ globalThis.EtudePanel = (() => {
     toastTimer = setTimeout(() => toastEl.classList.remove('et-show'), 6000);
   }
 
+  // Switch language: re-apply all static labels and re-render dynamic text.
+  // fromUser=true means the person changed the selector, so persist the choice.
+  function setLang(code, fromUser) {
+    lang = I18N[code] ? code : 'en';
+    if (langSel) langSel.value = lang;
+    relabel();
+    render();
+    if (fromUser) emit('onLang', lang);
+  }
+
   return {
-    mount, t, formatTime, setVisible, setChipPos, toast,
+    mount, t, formatTime, setVisible, setChipPos, toast, setLang,
     on(handlers) { H = handlers || {}; },
     setState(partial) { Object.assign(state, partial); render(); }
   };
