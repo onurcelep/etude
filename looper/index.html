@@ -196,9 +196,14 @@
   input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px}
 
   /* loop / sections */
-  .ptRow{display:flex;align-items:center;gap:8px;margin:10px 0}
-  .ptRow strong{width:14px;color:var(--mut);font-weight:600}
-  .ptRow input.t{width:84px;text-align:center}
+  /* A|B marker strip — segmented two-cell look, matching the extension */
+  .abstrip{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden;margin:12px 0}
+  .abcell{padding:11px 13px;display:flex;flex-direction:column;gap:9px}
+  .abcell + .abcell{border-left:1px solid var(--line)}
+  .abhead{display:flex;align-items:center;gap:9px}
+  .ablab{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);font-weight:600}
+  .abtime{flex:1;min-width:0;width:auto;text-align:center;color:var(--accent);font-size:14px;padding:5px 6px}
+  .abacts{display:flex;gap:6px;flex-wrap:wrap}
   #loopHint{color:var(--mut);font-size:12px;line-height:1.55;margin:2px 0 16px;letter-spacing:.02em}
   .loopbar{display:flex;align-items:center;gap:9px;margin-top:16px;flex-wrap:wrap}
   .looptoggle{width:40px;height:34px;padding:0;border-radius:var(--r-sm);border:1px solid var(--line-2);background:transparent;color:var(--mut);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.13s}
@@ -207,7 +212,13 @@
   .looptoggle.ready{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
   .looptoggle.on{background:var(--accent);border-color:var(--accent);color:var(--paper)}
   .looptoggle.on:hover{background:var(--accent-2)}
-  #sections{margin-top:14px;display:flex;flex-direction:column;gap:6px}
+  #sections{margin-top:14px;display:flex;flex-direction:column;gap:6px;max-height:196px;overflow-y:auto;overflow-x:hidden;padding-right:10px;scrollbar-width:none}
+  #sections::-webkit-scrollbar{width:0;height:0;display:none}
+  /* custom always-visible draggable scrollbar for saved loops, matching the extension */
+  .secwrap{position:relative}
+  .secsbar{position:absolute;right:1px;width:6px;border-radius:6px;background:var(--line-2);cursor:grab;display:none;touch-action:none;transition:background .12s}
+  .secsbar:hover,.secsbar.drag{background:var(--faint)}
+  .secsbar.drag{cursor:grabbing}
   .sec{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line-2);border-radius:var(--r-sm)}
   .sec.active{border-color:var(--accent);background:var(--accent-soft)}
   .sec input.nm{flex:1;min-width:60px;border:none;background:transparent;font:inherit;color:var(--ink)}
@@ -419,14 +430,22 @@
           <div class="card loopcard">
         <div class="card-title" data-i18n="temp_loop">Temporary Loop</div>
         <div id="loopHint"></div>
-        <div class="ptRow"><strong>A</strong> <input class="t" type="text" id="aTime" placeholder="--:--" /> <button id="setA" class="mini" title="Set start to current time" data-i18n="set_btn">set</button> <button id="jumpA" class="mini play-mini" title="Play from A">&#9654;</button> <button id="clearA" class="mini" title="Clear A" data-i18n="clear_btn">clear</button></div>
-        <div class="ptRow"><strong>B</strong> <input class="t" type="text" id="bTime" placeholder="--:--" /> <button id="setB" class="mini" title="Set end to current time" data-i18n="set_btn">set</button> <button id="jumpB" class="mini play-mini" title="Play from B">&#9654;</button> <button id="clearB" class="mini" title="Clear B" data-i18n="clear_btn">clear</button></div>
+        <div class="abstrip">
+          <div class="abcell">
+            <div class="abhead"><span class="ablab">A</span> <input class="t abtime" type="text" id="aTime" placeholder="--:--" /></div>
+            <div class="abacts"><button id="setA" class="mini" title="Set start to current time" data-i18n="set_btn">set</button> <button id="jumpA" class="mini play-mini" title="Play from A">&#9654;</button> <button id="clearA" class="mini" title="Clear A" data-i18n="clear_btn">clear</button></div>
+          </div>
+          <div class="abcell">
+            <div class="abhead"><span class="ablab">B</span> <input class="t abtime" type="text" id="bTime" placeholder="--:--" /></div>
+            <div class="abacts"><button id="setB" class="mini" title="Set end to current time" data-i18n="set_btn">set</button> <button id="jumpB" class="mini play-mini" title="Play from B">&#9654;</button> <button id="clearB" class="mini" title="Clear B" data-i18n="clear_btn">clear</button></div>
+          </div>
+        </div>
         <div class="loopbar">
           <button id="loopBtn" class="looptoggle" title="Loop the A–B section">&#10227;</button>
           <button id="saveSection" class="tog" title="Save this A–B as a reusable loop" data-i18n="save_loop">save-loop</button>
         </div>
         <div class="card-title savedhead" id="savedHead" style="display:none"><span data-i18n="saved_loops">Saved Loops</span><span id="savedCount"></span></div>
-        <div id="sections"></div>
+        <div class="secwrap"><div id="sections"></div><div class="secsbar" id="secSbar"></div></div>
       </div>
         </div>
         <div class="side">
@@ -956,7 +975,7 @@ function activateSection(s) { A = s.start; B = s.end; loopOn = true; activeSec =
 function renderSections() {
   const box = $('sections'); box.innerHTML = '';
   const sh = $('savedHead');
-  if (!sections.length) { sh.style.display = 'none'; box.innerHTML = '<div class="empty" style="padding:4px 2px">' + t("empty_loops") + '</div>'; drawMarks(); return; }
+  if (!sections.length) { sh.style.display = 'none'; box.innerHTML = '<div class="empty" style="padding:4px 2px">' + t("empty_loops") + '</div>'; drawMarks(); updateSecSbar(); return; }
   sh.style.display = '';
   $('savedCount').textContent = ' · ' + sections.length;
   sections.forEach(s => {
@@ -977,7 +996,29 @@ function renderSections() {
     box.appendChild(row);
   });
   drawMarks();
+  updateSecSbar();
 }
+// custom always-visible draggable scrollbar for the saved-loops list (matches the extension)
+function updateSecSbar() {
+  const list = $('sections'), sbar = $('secSbar');
+  if (!list || !sbar) return;
+  const ch = list.clientHeight, sh = list.scrollHeight;
+  if (sh <= ch + 1) { sbar.style.display = 'none'; return; }
+  sbar.style.display = 'block';
+  const thumbH = Math.max(24, (ch / sh) * ch), maxTop = ch - thumbH, range = sh - ch;
+  sbar.style.height = thumbH + 'px';
+  sbar.style.top = (list.offsetTop + (range ? (list.scrollTop / range) * maxTop : 0)) + 'px';
+}
+(function wireSecSbar() {
+  const list = $('sections'), sbar = $('secSbar');
+  if (!list || !sbar) return;
+  list.addEventListener('scroll', updateSecSbar);
+  window.addEventListener('resize', updateSecSbar);
+  let drag = null;
+  sbar.addEventListener('pointerdown', e => { e.preventDefault(); drag = { y: e.clientY, top: list.scrollTop }; sbar.setPointerCapture(e.pointerId); sbar.classList.add('drag'); });
+  sbar.addEventListener('pointermove', e => { if (!drag) return; const maxTop = list.clientHeight - sbar.offsetHeight, range = list.scrollHeight - list.clientHeight; list.scrollTop = drag.top + (maxTop > 0 ? ((e.clientY - drag.y) / maxTop) * range : 0); });
+  sbar.addEventListener('pointerup', () => { drag = null; sbar.classList.remove('drag'); });
+})();
 function updateAB() {
   $('aTime').value = A != null ? fmt(A) : '';
   $('bTime').value = B != null ? fmt(B) : '';
