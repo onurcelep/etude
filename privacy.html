@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Privacy · Etude</title>
+<meta name="description" content="Etude's privacy policy. Etude collects no personal data. Every tool and the browser extension run entirely in your browser." />
+<meta name="theme-color" content="#efeee7" id="themeColor" />
+<link rel="icon" href="looper/icon-192.png" />
+<script>/* set theme before paint to avoid a flash */try{var _t=localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<link rel="stylesheet" href="shared/theme.css" />
+<style>
+  .top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+       padding:16px 26px;background:color-mix(in srgb,var(--paper) 85%,transparent);
+       -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .top .tag{color:var(--mut);font-size:13px;border-left:1px solid var(--line-2);padding-left:14px}
+  .grow{flex:1}
+  @media (max-width:640px){ .top .tag{display:none} }
+
+  .wrap{max-width:760px;margin:0 auto;padding:52px 26px 20px}
+  h1{font-family:var(--display);font-size:clamp(28px,5vw,40px);letter-spacing:-.01em;margin:0 0 6px;font-weight:600}
+  .updated{color:var(--faint);font-size:12.5px;font-family:var(--mono);margin:0 0 30px}
+  .lede{font-size:17px;color:var(--ink);line-height:1.7;margin:0 0 8px}
+  .lede b{color:var(--accent)}
+
+  h2{font-family:var(--display);font-size:19px;margin:34px 0 10px;font-weight:600}
+  p{color:var(--mut);font-size:15px;line-height:1.75;margin:0 0 12px}
+  ul{color:var(--mut);font-size:15px;line-height:1.75;margin:0 0 12px;padding-left:20px}
+  li{margin:5px 0}
+  a{color:var(--mut);border-bottom:1px solid var(--line-2)}
+  a:hover{color:var(--accent);border-color:var(--accent)}
+  strong{color:var(--ink)}
+
+  .callout{border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:18px 20px;margin:20px 0}
+  .callout p{margin:0;color:var(--ink)}
+
+  footer{max-width:760px;margin:0 auto;padding:30px 26px 60px;color:var(--faint);font-size:12.5px;line-height:1.8}
+  footer a{color:var(--mut);border-bottom:1px solid var(--line-2)}
+  footer a:hover{color:var(--accent);border-color:var(--accent)}
+  footer .sig{margin-top:10px;font-size:12px;color:var(--faint)}
+  [data-theme="dark"] .top{background:rgba(20,19,25,.82)}
+  [data-theme="dark"] .callout{background:linear-gradient(180deg,#221f28,#191820);border-color:rgba(255,255,255,.07)}
+</style>
+</head>
+<body>
+  <div class="top">
+    <a class="brand" href="./" style="border:0;display:flex;align-items:center;gap:2px;color:var(--ink)">
+      <svg class="mark" viewBox="0 0 13 24" width="13" height="24" aria-hidden="true"><rect x="1" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/><rect x="4.6" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><circle cx="8" cy="9" r="1.3" fill="currentColor"/><circle cx="8" cy="15" r="1.3" fill="currentColor"/></svg><span class="title" style="font-family:var(--display);font-weight:600;padding:0 4px">Étude</span><svg class="mark" viewBox="0 0 13 24" width="13" height="24" aria-hidden="true"><circle cx="5" cy="9" r="1.3" fill="currentColor"/><circle cx="5" cy="15" r="1.3" fill="currentColor"/><rect x="7.1" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><rect x="9.4" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/></svg>
+    </a>
+    <span class="tag">privacy policy</span>
+    <span class="grow"></span>
+    <button class="icon-btn" id="themeBtn" title="Switch light / dark" aria-label="Switch light or dark theme"></button>
+  </div>
+
+  <main class="wrap">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: 7 July 2026</p>
+
+    <p class="lede">Etude collects <b>no personal data</b>. Every tool on this site, and the Etude browser extension, run entirely in your browser. There are no accounts, no servers, no tracking, and no analytics.</p>
+
+    <div class="callout">
+      <p>In one line: nothing you do in Etude is sent anywhere. Your files, your videos, and your settings never leave your device.</p>
+    </div>
+
+    <h2>What Etude is</h2>
+    <p>Etude is a small suite of offline, browser-based tools for practicing musicians, including the Looper (a web app) and the Etude Looper browser extension for online video. This policy covers the website at onurcelep.github.io/etude and the browser extension.</p>
+
+    <h2>Data we collect</h2>
+    <p><strong>None.</strong> Etude does not collect, transmit, sell, or share any personal information. Specifically, it does not:</p>
+    <ul>
+      <li>require an account or a login;</li>
+      <li>send your audio, video, or files to any server (all processing happens locally in your browser);</li>
+      <li>use analytics, tracking pixels, advertising, or third-party trackers;</li>
+      <li>read or store your browsing history;</li>
+      <li>collect clicks, keystrokes, or any behavioral data.</li>
+    </ul>
+
+    <h2>Data stored on your device</h2>
+    <p>To remember your preferences, Etude saves a few things <strong>locally on your device only</strong>, using your browser's own storage (localStorage and IndexedDB). This data never leaves your browser and is not accessible to us or anyone else:</p>
+    <ul>
+      <li>your theme (light or dark) and language choice;</li>
+      <li>your saved practice sessions and named A-B loops, including their settings;</li>
+      <li>for the extension, your per-video loops and control settings.</li>
+    </ul>
+    <p>You can clear this at any time by clearing your browser's site data or removing the extension.</p>
+
+    <h2>The browser extension</h2>
+    <p>The Etude Looper extension adds a practice panel to YouTube video pages so you can transpose, change speed without changing pitch, and set A-B loops. To do this it requests:</p>
+    <ul>
+      <li><strong>storage</strong> — to save your loops and settings locally, as described above;</li>
+      <li><strong>access to youtube.com</strong> — so it can attach its audio engine to the video you are watching and show its controls. This access is limited to YouTube, the only site the extension supports.</li>
+    </ul>
+    <p>All audio is processed locally in real time. The extension transmits nothing, and includes no remote code: all of its code, including the WebAssembly audio engine, ships inside the extension package.</p>
+
+    <h2>Third-party links</h2>
+    <p>Etude contains optional links to external sites, such as its <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener">source code on GitHub</a> and a "buy me a coffee" page. If you follow those links, the destination site's own privacy policy applies. Etude itself does not share any data with them.</p>
+
+    <h2>Children</h2>
+    <p>Etude is a general-audience tool that collects no data, and is safe for use by anyone.</p>
+
+    <h2>Changes to this policy</h2>
+    <p>If this policy changes, the updated version will be posted on this page with a new "last updated" date.</p>
+
+    <h2>Contact</h2>
+    <p>Questions about privacy in Etude? Contact Onur Celep at <a href="mailto:onurcelep@gmail.com">onurcelep@gmail.com</a>, or open an issue on <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener">GitHub</a>.</p>
+  </main>
+
+  <footer>
+    Runs entirely in your browser · no accounts, no tracking ·
+    <a href="./">home</a> ·
+    <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener">source</a> (MIT)
+    <div class="sig">Etude, by <a href="https://onurcelep.github.io" target="_blank" rel="noopener">Onur Celep</a></div>
+  </footer>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6"/></svg>';
+  const MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8 8 0 0 1 9.4 4 7 7 0 1 0 20 14.6z"/></svg>';
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    const tc = $('themeColor'); if (tc) tc.setAttribute('content', t === 'dark' ? '#121114' : '#efeee7');
+    const b = $('themeBtn'); if (b){ b.innerHTML = t === 'dark' ? SUN : MOON; b.title = t === 'dark' ? 'Switch to light' : 'Switch to dark'; }
+  }
+  $('themeBtn').onclick = () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    localStorage.setItem('etude.theme', next); applyTheme(next);
+  };
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+</script>
+</body>
+</html>
