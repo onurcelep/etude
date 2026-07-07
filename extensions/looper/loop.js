@@ -46,9 +46,15 @@ globalThis.EtudeLoop = (() => {
     try { await store().set({ [key(id)]: loops }); } catch (e) {}
     return loops;
   }
+  // Rename in place (keeps list order) so the panel can offer inline renaming.
+  async function rename(id, oldName, newName) {
+    const loops = (await list(id)).map(l => l.name === oldName ? { name: newName, a: l.a, b: l.b } : l);
+    try { await store().set({ [key(id)]: loops }); } catch (e) {}
+    return loops;
+  }
 
   return {
-    decide, watch, unwatch, getState, list, save, remove,
+    decide, watch, unwatch, getState, list, save, remove, rename,
     setA(t) { a = t; changed(); },
     setB(t) { b = t; changed(); },
     enable(on) { enabled = !!on; changed(); },

@@ -5,25 +5,25 @@
 globalThis.EtudePanel = (() => {
   const I18N = {
     en: { transpose: 'transpose', pitch: 'pitch', speed: 'speed', loop: 'loop',
-          set: 'set', loop_on: 'loop: on', loop_off: 'loop: off',
-          save_loop: 'save loop', loop_name: 'loop name', saved: 'saved loops',
-          bypass: 'original audio', reset: 'reset', del: 'delete',
+          set: 'set', temp_loop: 'temporary loop', audio: 'audio & speed',
+          save_loop: 'save loop', saved: 'saved loops',
+          bypass: 'bypass', reset: 'reset', del: 'delete',
           local_looper: 'open local file', coffee: 'buy me coffee',
           hidden_hint: 'Etude is hidden. Click the puzzle icon in your browser toolbar to bring it back.',
           no_audio: 'Cannot process this audio here. Speed and loop still work.',
           no_engine: 'Pitch engine unavailable. Speed and loop still work.' },
     tr: { transpose: 'transpoze', pitch: 'ince ayar', speed: 'hız', loop: 'döngü',
-          set: 'ayarla', loop_on: 'döngü: açık', loop_off: 'döngü: kapalı',
-          save_loop: 'döngüyü kaydet', loop_name: 'döngü adı', saved: 'kayıtlı döngüler',
-          bypass: 'orijinal ses', reset: 'sıfırla', del: 'sil',
+          set: 'ayarla', temp_loop: 'geçici döngü', audio: 'ses & hız',
+          save_loop: 'döngüyü kaydet', saved: 'kayıtlı döngüler',
+          bypass: 'bypass', reset: 'sıfırla', del: 'sil',
           local_looper: 'lokal dosya aç', coffee: 'destek ol',
           hidden_hint: 'Etude gizlendi. Geri getirmek için tarayıcı araç çubuğundaki yapboz simgesine tıklayın.',
           no_audio: 'Bu ses burada işlenemiyor. Hız ve döngü çalışmaya devam eder.',
           no_engine: 'Ses motoru kullanılamıyor. Hız ve döngü çalışmaya devam eder.' },
     de: { transpose: 'transponieren', pitch: 'feinstimmung', speed: 'tempo', loop: 'loop',
-          set: 'setzen', loop_on: 'loop: an', loop_off: 'loop: aus',
-          save_loop: 'loop speichern', loop_name: 'loop-name', saved: 'gespeicherte loops',
-          bypass: 'originalton', reset: 'zurücksetzen', del: 'löschen',
+          set: 'setzen', temp_loop: 'temporärer Loop', audio: 'Audio & Tempo',
+          save_loop: 'loop speichern', saved: 'gespeicherte loops',
+          bypass: 'Bypass', reset: 'zurücksetzen', del: 'löschen',
           local_looper: 'lokale Datei öffnen', coffee: 'unterstützen',
           hidden_hint: 'Etude ist ausgeblendet. Klicke auf das Puzzle-Symbol in der Symbolleiste, um es zurückzuholen.',
           no_audio: 'Dieser Ton kann hier nicht verarbeitet werden. Tempo und Loop funktionieren weiter.',
@@ -53,12 +53,21 @@ globalThis.EtudePanel = (() => {
   }
 
   const state = { transpose: 0, cents: 0, speedPct: 100, a: null, b: null,
-                  loopOn: false, loops: [], status: '', pitchDisabled: false, bypassed: false };
+                  loopOn: false, loops: [], activeLoop: null, status: '', pitchDisabled: false, bypassed: false };
   let H = {};                    // intent handlers
   let root = null, chip = null, langSel = null;
+  let prevLoopCount = 0;         // to auto-scroll the list to a newly saved loop
 
   const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
   const emit = (name, ...args) => { if (H[name]) H[name](...args); };
+
+  // First free "Loop N" name, so a fresh save never silently overwrites an existing one.
+  function defaultLoopName() {
+    const names = new Set(state.loops.map(l => l.name));
+    let n = state.loops.length + 1;
+    while (names.has('Loop ' + n)) n++;
+    return 'Loop ' + n;
+  }
 
   // tiny DOM helper
   function el(tag, cls, text) {
@@ -74,15 +83,17 @@ globalThis.EtudePanel = (() => {
     trReg(() => lab.textContent = t(labelKey));
     row.appendChild(lab);
     const minus = el('button', 'et-step', '−');
+    const vw = el('div', 'et-valwrap');          // value + unit kept together, centered between the buttons
     const val = el('span', 'et-val', '');
     const un = el('span', 'et-unit', unit);
+    vw.append(val, un);
     const plus = el('button', 'et-step', '+');
     const rst = el('button', 'et-rst', '↺');    // per-parameter reset, shown only when off default
     trReg(() => rst.title = t('reset'));
     minus.onclick = () => { emit('onOpen'); set(clamp(get() - step, lo, hi)); };
     plus.onclick = () => { emit('onOpen'); set(clamp(get() + step, lo, hi)); };
     rst.onclick = () => { emit('onOpen'); set(def); };
-    row.append(minus, val, un, plus, rst);
+    row.append(minus, vw, plus, rst);
     row._update = () => {
       val.textContent = String(get());
       rst.style.visibility = get() === def ? 'hidden' : 'visible';
@@ -106,7 +117,10 @@ globalThis.EtudePanel = (() => {
     const head = el('div', 'et-head');
     const brandWrap = el('div', 'et-brandwrap');
     const brandLine = el('div', 'et-brandline');
-    brandLine.appendChild(el('span', 'et-brand', '𝄆 Étude 𝄇'));
+    const brand = el('a', 'et-brand', '𝄆 Étude 𝄇');   // the logo links to the Etude landing page
+    brand.href = 'https://onurcelep.github.io/etude/?theme=dark';   // arrive in the Console (dark) identity
+    brand.target = '_blank'; brand.rel = 'noopener'; brand.title = 'Etude';
+    brandLine.appendChild(brand);
     brandLine.appendChild(el('span', 'et-subapp', 'Looper'));   // Etude is the umbrella; this is the Looper
     brandWrap.appendChild(brandLine);
     const by = el('a', 'et-by', 'by Onur Celep');
@@ -138,7 +152,7 @@ globalThis.EtudePanel = (() => {
     }
     function openPanel(on) {
       root.classList.toggle('et-open', on);
-      if (root.classList.contains('et-open')) positionPanel();
+      if (root.classList.contains('et-open')) { positionPanel(); updateSbar(); }   // list has layout now
     }
 
     // drag the panel by its header (ignore the close button and the by-link)
@@ -189,70 +203,144 @@ globalThis.EtudePanel = (() => {
       () => state.cents, v => { state.cents = v; render(); emit('onPitch', v); }, 5, -100, 100, 0);
     rows.speed = stepRow('speed', '%',
       () => state.speedPct, v => { state.speedPct = v; render(); emit('onSpeed', v); }, 5, 25, 175, 100);
+    // audio section header with an audio-only reset (transpose/pitch/speed; leaves the loop alone)
+    const ahead = el('div', 'et-sechead');
+    const alab = el('div', 'et-seclab');
+    trReg(() => alab.textContent = t('audio'));
+    const audioRst = el('button', 'et-secrst', '↺');
+    trReg(() => audioRst.title = t('reset'));
+    audioRst.onclick = () => { emit('onOpen'); emit('onResetAudio'); };
+    ahead.append(alab, audioRst);
+    root.appendChild(ahead);
     root.append(rows.transpose, rows.pitch, rows.speed);
 
-    // loop section
-    const loop = el('div', 'et-loop');
-    const ab = el('div', 'et-ab');
-    const aBtn = el('button', 'et-btn', 'A'); const aVal = el('span', 'et-time', '--:--');
-    const bBtn = el('button', 'et-btn', 'B'); const bVal = el('span', 'et-time', '--:--');
-    const tog = el('button', 'et-btn et-tog', t('loop_off'));
-    trReg(() => { aBtn.title = t('set') + ' A'; bBtn.title = t('set') + ' B'; });
-    aBtn.onclick = () => { emit('onOpen'); emit('onSetA'); };
-    bBtn.onclick = () => { emit('onOpen'); emit('onSetB'); };
-    tog.onclick = () => { emit('onOpen'); emit('onToggleLoop', !state.loopOn); };
-    ab.append(aBtn, aVal, bBtn, bVal, tog);
-    loop.appendChild(ab);
-
-    const saveRow = el('div', 'et-save');
-    const nameIn = el('input', 'et-name');
-    trReg(() => nameIn.placeholder = t('loop_name'));
-    const saveBtn = el('button', 'et-btn');
-    trReg(() => saveBtn.textContent = t('save_loop'));
-    saveBtn.onclick = () => { if (nameIn.value.trim()) { emit('onSaveLoop', nameIn.value.trim()); nameIn.value = ''; } };
-    saveRow.append(nameIn, saveBtn);
-    loop.appendChild(saveRow);
-
-    const list = el('div', 'et-list');
-    loop.appendChild(list);
-    root.appendChild(loop);
-
-    // footer: bypass + reset + status
-    const foot = el('div', 'et-foot');
+    // bypass: hear the original, unprocessed audio — an audio control, so it sits with the audio params
     const byp = el('label', 'et-byp');
     const bypIn = el('input'); bypIn.type = 'checkbox';
     bypIn.onchange = () => { emit('onOpen'); emit('onBypass', bypIn.checked); };
     const bypLab = el('span');
     trReg(() => bypLab.textContent = t('bypass'));
-    byp.append(bypIn, bypLab);
-    const reset = el('button', 'et-btn');
-    trReg(() => reset.textContent = t('reset'));
-    reset.onclick = () => { emit('onOpen'); emit('onReset'); };
-    foot.append(byp, reset);
+    byp.append(bypLab, bypIn);
+    root.appendChild(byp);
+
+    // loop section: a temporary (working) A-B on top, saved loops in their own section below
+    const loop = el('div', 'et-loop');
+
+    // header with a loop-only reset (clears A/B; leaves audio settings alone)
+    const lhead = el('div', 'et-sechead');
+    const tlab = el('div', 'et-seclab');
+    trReg(() => tlab.textContent = t('temp_loop'));
+    const loopRst = el('button', 'et-secrst', '↺');
+    trReg(() => loopRst.title = t('reset'));
+    loopRst.onclick = () => { state.activeLoop = null; emit('onOpen'); emit('onClearLoop'); };
+    lhead.append(tlab, loopRst);
+    loop.appendChild(lhead);
+
+    // marker strip: A and B capture the current time; segmented like a loop pedal's readout
+    const trans = el('div', 'et-transport');
+    function marker(letter) {
+      const btn = el('button', 'et-mk');
+      const k = el('span', 'et-mk-k', letter);
+      const val = el('span', 'et-mk-t', '--:--');
+      btn.append(k, val);
+      return { btn, val };
+    }
+    const aMk = marker('A'), bMk = marker('B');
+    const aBtn = aMk.btn, aVal = aMk.val, bBtn = bMk.btn, bVal = bMk.val;
+    trReg(() => { aBtn.title = t('set') + ' A'; bBtn.title = t('set') + ' B'; });
+    // editing A or B means the working loop no longer matches a saved one
+    aBtn.onclick = () => { state.activeLoop = null; emit('onOpen'); emit('onSetA'); };
+    bBtn.onclick = () => { state.activeLoop = null; emit('onOpen'); emit('onSetB'); };
+    trans.append(aBtn, bBtn);
+    loop.appendChild(trans);
+
+    // action row: loop (primary, colour = state) stretches; save (secondary) tucks beside it
+    const acts = el('div', 'et-acts');
+    const tog = el('button', 'et-btn et-tog');
+    const togGlyph = el('span', 'et-tog-g', '𝄆𝄇');   // repeat barline: the loop, in the brand's own mark
+    const togLab = el('span');
+    trReg(() => togLab.textContent = t('loop'));       // colour (et-on), not text, shows on/off
+    tog.append(togGlyph, togLab);
+    tog.onclick = () => { emit('onOpen'); emit('onToggleLoop', !state.loopOn); };
+    const saveBtn = el('button', 'et-btn et-savebtn');
+    trReg(() => saveBtn.textContent = t('save_loop'));
+    saveBtn.onclick = () => {
+      if (state.a == null || state.b == null || state.b <= state.a) return;
+      state.activeLoop = null;                  // saving commits, then clears A/B for the next loop
+      emit('onSaveLoop', defaultLoopName());
+    };
+    acts.append(tog, saveBtn);
+    loop.appendChild(acts);
+
+    // saved loops: their own section, revealed once at least one is saved
+    const saved = el('div', 'et-saved');
+    const slab = el('div', 'et-seclab');   // "saved loops · N" — count set in render()
+    saved.appendChild(slab);
+    const list = el('div', 'et-list');
+    saved.appendChild(list);
+    const sbar = el('div', 'et-sbar');     // custom always-visible, draggable scrollbar thumb
+    saved.appendChild(sbar);
+    loop.appendChild(saved);
+    // wheel/trackpad scroll repositions the thumb; the thumb itself is draggable by pointer
+    list.addEventListener('scroll', updateSbar);
+    let sdrag = null;
+    sbar.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      sdrag = { y: e.clientY, top: list.scrollTop };
+      sbar.setPointerCapture(e.pointerId);
+      sbar.classList.add('et-sbar-drag');
+    });
+    sbar.addEventListener('pointermove', e => {
+      if (!sdrag) return;
+      const maxTop = list.clientHeight - sbar.offsetHeight;
+      const range = list.scrollHeight - list.clientHeight;
+      list.scrollTop = sdrag.top + (maxTop > 0 ? ((e.clientY - sdrag.y) / maxTop) * range : 0);
+    });
+    sbar.addEventListener('pointerup', () => { sdrag = null; sbar.classList.remove('et-sbar-drag'); });
+
+    root.appendChild(loop);
+
+    // footer: open local file (feature) bottom-left, support link bottom-right
+    const foot = el('div', 'et-foot');
+    const looper = el('a', 'et-feat');
+    trReg(() => looper.textContent = '📂 ' + t('local_looper'));
+    looper.href = 'https://onurcelep.github.io/etude/looper/?theme=dark';   // match the extension's dark Console look
+    looper.target = '_blank'; looper.rel = 'noopener';
+    const coffee = el('a', 'et-supportlink');
+    trReg(() => coffee.textContent = '☕ ' + t('coffee'));
+    coffee.href = 'https://buymeacoffee.com/onurcelep';
+    coffee.target = '_blank'; coffee.rel = 'noopener';
+    foot.append(looper, coffee);
     root.appendChild(foot);
     const status = el('div', 'et-status', '');
     root.appendChild(status);
 
-    // links: the web Looper (for local files) and support
-    const links = el('div', 'et-links');
-    const looper = el('a', 'et-link');
-    trReg(() => looper.textContent = '📂 ' + t('local_looper'));
-    looper.href = 'https://onurcelep.github.io/etude/looper/';
-    looper.target = '_blank'; looper.rel = 'noopener';
-    const coffee = el('a', 'et-link');
-    trReg(() => coffee.textContent = '☕ ' + t('coffee'));
-    coffee.href = 'https://buymeacoffee.com/onurcelep';
-    coffee.target = '_blank'; coffee.rel = 'noopener';
-    links.append(looper, el('span', 'et-dot', '·'), coffee);
-    root.appendChild(links);
-
     document.documentElement.appendChild(root);
 
-    rows._ab = { aVal, bVal, tog };
+    rows._ab = { aVal, bVal, tog, aBtn, bBtn };
+    rows._audioRst = audioRst;
+    rows._loopRst = loopRst;
+    rows._saveBtn = saveBtn;
+    rows._saved = saved;
+    rows._slab = slab;
     rows._list = list;
+    rows._sbar = sbar;
     rows._status = status;
     rows._byp = bypIn;
     render();
+  }
+
+  // size/position the custom scrollbar thumb from the list's scroll metrics
+  function updateSbar() {
+    const list = rows._list, sbar = rows._sbar;
+    if (!list || !sbar) return;
+    const ch = list.clientHeight, sh = list.scrollHeight;
+    if (sh <= ch + 1) { sbar.style.display = 'none'; return; }   // fits: nothing to scroll
+    sbar.style.display = 'block';
+    const thumbH = Math.max(22, (ch / sh) * ch);
+    const maxTop = ch - thumbH, range = sh - ch;
+    sbar.style.height = thumbH + 'px';
+    sbar.style.top = (list.offsetTop + (range ? (list.scrollTop / range) * maxTop : 0)) + 'px';
   }
 
   function render() {
@@ -260,24 +348,49 @@ globalThis.EtudePanel = (() => {
     ['transpose', 'pitch', 'speed'].forEach(k => rows[k]._update());
     rows.transpose.classList.toggle('et-off', state.pitchDisabled);
     rows.pitch.classList.toggle('et-off', state.pitchDisabled);
+    // audio reset shows only when a param is off-default
+    rows._audioRst.style.visibility = (state.transpose !== 0 || state.cents !== 0 || state.speedPct !== 100) ? 'visible' : 'hidden';
     rows._ab.aVal.textContent = formatTime(state.a);
     rows._ab.bVal.textContent = formatTime(state.b);
-    rows._ab.tog.textContent = state.loopOn ? t('loop_on') : t('loop_off');
+    rows._ab.aBtn.classList.toggle('et-set', state.a != null);
+    rows._ab.bBtn.classList.toggle('et-set', state.b != null);
     rows._ab.tog.classList.toggle('et-on', state.loopOn);
+    // loop reset shows only when there is a loop to clear
+    rows._loopRst.style.visibility = (state.a != null || state.b != null || state.loopOn) ? 'visible' : 'hidden';
+    const validAB = state.a != null && state.b != null && state.b > state.a;
+    rows._saveBtn.disabled = !validAB;
+    rows._saved.style.display = state.loops.length ? '' : 'none';
+    rows._slab.textContent = t('saved') + (state.loops.length ? ' · ' + state.loops.length : '');
     rows._status.textContent = state.status;
     rows._byp.checked = !!state.bypassed;
     const list = rows._list;
     list.textContent = '';
     state.loops.forEach(l => {
-      const item = el('div', 'et-item');
-      const go = el('button', 'et-btn et-go', l.name + ' · ' + formatTime(l.a) + '–' + formatTime(l.b));
-      go.onclick = () => { emit('onOpen'); emit('onApplyLoop', l); };
+      const isActive = l.name === state.activeLoop;
+      // active = this saved loop is loaded; playing = loaded AND the loop is engaged.
+      // Toggling loop off drops "playing" but keeps the subtle "loaded" marker.
+      const item = el('div', 'et-item' + (isActive ? ' et-active' : '') + (isActive && state.loopOn ? ' et-playing' : ''));
+      const play = el('button', 'et-play', '▶');
+      play.title = t('loop');
+      play.onclick = () => { state.activeLoop = l.name; emit('onOpen'); emit('onApplyLoop', l); render(); };
+      const nm = el('input', 'et-nm'); nm.value = l.name; nm.title = l.name;
+      nm.onchange = () => {
+        const newName = nm.value.trim();
+        if (!newName || newName === l.name) { nm.value = l.name; return; }   // empty rename reverts
+        if (state.activeLoop === l.name) state.activeLoop = newName;
+        emit('onRenameLoop', l.name, newName);
+      };
+      const rng = el('span', 'et-rng', formatTime(l.a) + '–' + formatTime(l.b));
       const del = el('button', 'et-x', '×');
       del.title = t('del');
-      del.onclick = () => emit('onDeleteLoop', l.name);
-      item.append(go, del);
+      del.onclick = () => { if (state.activeLoop === l.name) state.activeLoop = null; emit('onDeleteLoop', l.name); };
+      item.append(play, nm, rng, del);
       list.appendChild(item);
     });
+    // a save adds exactly one loop (at the bottom): scroll it into view so it is clearly saved
+    if (state.loops.length === prevLoopCount + 1) list.scrollTop = list.scrollHeight;
+    prevLoopCount = state.loops.length;
+    updateSbar();
   }
 
   function setVisible(on) {

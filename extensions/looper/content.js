@@ -66,9 +66,21 @@
     onSetA: () => { const v = getVideo(); if (v) L.setA(v.currentTime); },
     onSetB: () => { const v = getVideo(); if (v) L.setB(v.currentTime); },
     onToggleLoop: on => L.enable(on),
-    onSaveLoop: async name => { if (currentId) P.setState({ loops: await L.save(currentId, name) }); },
+    onSaveLoop: async name => {
+      if (!currentId) return;
+      const loops = await L.save(currentId, name);   // save captures the current A/B first
+      L.clear();                                      // then clear the working loop for the next one
+      P.setState({ loops });
+    },
     onApplyLoop: l => { L.apply(l); const v = getVideo(); if (v) v.currentTime = l.a; },
     onDeleteLoop: async name => { if (currentId) P.setState({ loops: await L.remove(currentId, name) }); },
+    onRenameLoop: async (oldName, newName) => { if (currentId) P.setState({ loops: await L.rename(currentId, oldName, newName) }); },
+    onClearLoop: () => { L.clear(); },   // reset the loop only; audio settings untouched
+    onResetAudio: () => {                // reset audio only; loop untouched
+      if (E.isAttached()) { E.setTranspose(0); E.setPitchCents(0); }
+      applySpeed(100);
+      P.setState({ transpose: 0, cents: 0, speedPct: 100 });
+    },
     onBypass: on => { E.bypass(on); P.setState({ bypassed: on }); },
     onReset: () => {
       E.setTranspose(0); E.setPitchCents(0); applySpeed(100); L.clear();
