@@ -188,8 +188,6 @@
   .row .readout{display:inline-flex;align-items:baseline;gap:5px;justify-self:start}
   .row .val{font-variant-numeric:tabular-nums;color:var(--ink);font-size:13px}
   .row .unit{color:var(--faint);font-size:11px}
-  .bpmout{color:var(--accent);font-size:11px;white-space:nowrap}
-  .bpmout:empty{display:none}
   .row .reset{margin-left:0;width:20px;height:20px;padding:0;font-size:14px;line-height:1;color:var(--faint);border:0;background:transparent;border-radius:var(--r-sm);cursor:pointer;visibility:hidden}
   .row .reset.show{visibility:visible}
   .row .reset:hover{color:var(--accent);background:transparent}
@@ -462,7 +460,6 @@
           </div>
           <div class="opts">
             <label><input type="checkbox" id="keepPitch" checked /> <span data-i18n="keep_pitch">keep pitch</span></label>
-            <label class="mut"><span data-i18n="song_bpm">song bpm</span> <input id="bpm" type="number" min="0" placeholder="–" style="width:62px" /> <span class="bpmout" id="bpmOut"></span></label>
           </div>
         </div>
                   </div>
@@ -504,7 +501,7 @@ const I18N = {
     coffee:"buy me a coffee", drop:"drop a file here, or click to browse", loops:"Loops", temp_loop:"Temporary Loop", saved_loops:"Saved Loops",
     set_btn:"set", clear_btn:"clear", save_loop:"save loop", ov_a:"set A", ov_b:"set B",
     pitch_speed:"Audio & Speed", transpose:"Transpose", pitch_lab:"Pitch", speed_lab:"Speed",
-    reset:"reset", keep_pitch:"keep pitch", song_bpm:"song bpm", install_app:"install app",
+    reset:"reset", keep_pitch:"keep pitch", install_app:"install app",
     privacy:"privacy", get_ext:"get the extension for online video",
     install_title:"Install Etude", saved_sessions:"Saved sessions",
     hint_none:"Set a start point (A) and an end point (B) to mark a section, then press the loop button to repeat it.",
@@ -524,7 +521,7 @@ const I18N = {
     coffee:"bana kahve ısmarla", drop:"bir dosya bırak veya seçmek için tıkla", loops:"Döngüler", temp_loop:"Geçici Döngü", saved_loops:"Kayıtlı Döngüler",
     set_btn:"ayarla", clear_btn:"temizle", save_loop:"döngüyü kaydet", ov_a:"A ayarla", ov_b:"B ayarla",
     pitch_speed:"Ses & Hız", transpose:"Transpose", pitch_lab:"İnce Akort", speed_lab:"Hız",
-    reset:"sıfırla", keep_pitch:"akordu koru", song_bpm:"parça bpm", install_app:"uygulamayı yükle",
+    reset:"sıfırla", keep_pitch:"akordu koru", install_app:"uygulamayı yükle",
     privacy:"gizlilik", get_ext:"çevrimiçi video için eklentiyi edinin",
     install_title:"Etude’ü yükle", saved_sessions:"Kayıtlı oturumlar",
     hint_none:"Bir bölümü işaretlemek için başlangıç (A) ve bitiş (B) noktası koy, sonra tekrarlamak için döngü düğmesine bas.",
@@ -544,7 +541,7 @@ const I18N = {
     coffee:"spendier mir einen Kaffee", drop:"Datei hierher ziehen oder zum Auswählen klicken", loops:"Loops", temp_loop:"Temporärer Loop", saved_loops:"Gespeicherte Loops",
     set_btn:"setzen", clear_btn:"löschen", save_loop:"Loop speichern", ov_a:"A setzen", ov_b:"B setzen",
     pitch_speed:"Audio & Tempo", transpose:"Transponieren", pitch_lab:"Tonhöhe", speed_lab:"Tempo",
-    reset:"zurücksetzen", keep_pitch:"Tonhöhe halten", song_bpm:"Song-BPM", install_app:"App installieren",
+    reset:"zurücksetzen", keep_pitch:"Tonhöhe halten", install_app:"App installieren",
     privacy:"Datenschutz", get_ext:"Erweiterung für Online-Video holen",
     install_title:"Etude installieren", saved_sessions:"Gespeicherte Sitzungen",
     hint_none:"Setze einen Startpunkt (A) und einen Endpunkt (B), um einen Abschnitt zu markieren, und drücke dann die Loop-Taste zum Wiederholen.",
@@ -679,7 +676,7 @@ let saveTimer = null;
 function persist() {
   if (!cur) return;
   cur.trans = +$('trans').value; cur.pitch = +$('pitch').value; cur.speed = +$('speed').value;
-  cur.keepPitch = $('keepPitch').checked; cur.bpm = $('bpm').value;
+  cur.keepPitch = $('keepPitch').checked;
   cur.A = A; cur.B = B; cur.loopOn = loopOn; cur.sections = sections;
   if (!cur.saved) return;                 // unsaved file: keep state in memory only
   cur.lastOpened = Date.now();
@@ -745,7 +742,6 @@ function applySession() {
   $('pitch').value = cur.pitch || 0;
   $('speed').value = cur.speed || 100;
   $('keepPitch').checked = cur.keepPitch !== false;
-  $('bpm').value = cur.bpm || '';
   A = (cur.A ?? null); B = (cur.B ?? null);
   loopOn = !!cur.loopOn; sections = cur.sections || []; activeSec = null;
   applyAll(); renderSections(); updateAB(); persist();
@@ -826,7 +822,6 @@ document.querySelectorAll('[data-reset]').forEach(b => b.onclick = () => {
 ['trans','pitch'].forEach(id => $(id).oninput = () => { applyPitchLabels(); applyPitch(); persist(); });
 $('speed').oninput = () => { applySpeed(); persist(); };
 $('keepPitch').onchange = () => { applyKeepPitch(); persist(); };
-$('bpm').oninput = () => { applyBpm(); persist(); };
 
 function updateResets() { document.querySelectorAll('[data-reset]').forEach(b => { const id = b.dataset.reset; b.classList.toggle('show', (+$(id).value) !== DEF[id]); }); }
 function applyPitchLabels() { $('transV').textContent = signed(+$('trans').value); $('pitchV').textContent = signed(+$('pitch').value); updateResets(); }
@@ -839,14 +834,13 @@ function applySpeed() {
   }
   v.playbackRate = speed;                                    // muted video follows for the picture
   $('speedV').textContent = Math.round(speed * 100);
-  applyBpm(); updateResets();
+  updateResets();
 }
 function applyKeepPitch() {
   if (!bufferMode) { const on = $('keepPitch').checked; v.preservesPitch = v.mozPreservesPitch = v.webkitPreservesPitch = on; }
   applySpeed();   // keep-pitch decides whether speed uses tempo (preserve) or rate (tape)
 }
-function applyBpm() { const base = +$('bpm').value; $('bpmOut').textContent = base > 0 ? '→ ' + Math.round(base * (+$('speed').value) / 100) + ' bpm' : ''; }
-function applyAll() { applyPitchLabels(); applyPitch(); applySpeed(); applyKeepPitch(); applyBpm(); }
+function applyAll() { applyPitchLabels(); applyPitch(); applySpeed(); applyKeepPitch(); }
 function signed(n) { return (n > 0 ? '+' : '') + n; }
 
 /* =========================================================================
