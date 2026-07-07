@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Etude Looper — transpose & slow down YouTube",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Change any YouTube video's key and slow it down without changing pitch, then loop the hard parts. Private and offline.",
   "icons": {
     "16": "icons/icon-16.png",
