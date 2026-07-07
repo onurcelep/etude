@@ -7,7 +7,7 @@
 <meta name="description" content="A small suite of private, offline, browser-based tools for practicing musicians. No accounts, no uploads." />
 <meta name="theme-color" content="#efeee7" id="themeColor" />
 <link rel="icon" href="looper/icon-192.png" />
-<script>/* set theme before paint to avoid a flash */try{var _t=localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<script>/* set theme before paint to avoid a flash; ?theme=dark|light (e.g. arriving from the extension) wins and is remembered */try{var _p=new URLSearchParams(location.search).get('theme');if(_p!=='dark'&&_p!=='light')_p=null;var _t=_p||localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(_p)localStorage.setItem('etude.theme',_p);document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <link rel="stylesheet" href="shared/theme.css" />
 <style>
   .top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:14px;flex-wrap:wrap;

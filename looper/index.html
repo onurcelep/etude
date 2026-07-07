@@ -7,7 +7,7 @@
 <meta name="description" content="Loop, slow down, and transpose your own audio & video to practice. Private and offline, right in your browser." />
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#efeee7" id="themeColor" />
-<script>/* set theme before paint to avoid a flash */try{var _t=localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<script>/* set theme before paint to avoid a flash; ?theme=dark|light (e.g. arriving from the extension) wins and is remembered */try{var _p=new URLSearchParams(location.search).get('theme');if(_p!=='dark'&&_p!=='light')_p=null;var _t=_p||localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(_p)localStorage.setItem('etude.theme',_p);document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <link rel="icon" href="icon-192.png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -177,6 +177,7 @@
   .card-title{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:16px;display:flex;align-items:center;gap:10px}
   .modal-title,.timeRow,.transport .time,.hist .meta,#engine,#loopState{font-family:var(--mono)}
   .card-title .grow{flex:1}
+  .savedhead{margin-top:20px;border-top:1px solid var(--line);padding-top:15px;margin-bottom:12px}
 
   /* Pitch & Speed: compact single-line rows (full width) */
   .row{display:grid;grid-template-columns:82px 22px minmax(0,1fr) 22px 70px auto;align-items:center;gap:13px;margin:14px 0}
@@ -189,9 +190,9 @@
   .row .unit{color:var(--faint);font-size:11px}
   .bpmout{color:var(--accent);font-size:11px;white-space:nowrap}
   .bpmout:empty{display:none}
-  .row .reset{margin-left:2px;padding:3px 8px;font-size:11px;color:var(--faint);border:1px solid transparent;background:transparent;border-radius:var(--r-sm);letter-spacing:.02em;visibility:hidden}
+  .row .reset{margin-left:0;width:20px;height:20px;padding:0;font-size:14px;line-height:1;color:var(--faint);border:0;background:transparent;border-radius:var(--r-sm);cursor:pointer;visibility:hidden}
   .row .reset.show{visibility:visible}
-  .row .reset:hover{color:var(--accent);background:var(--paper-2)}
+  .row .reset:hover{color:var(--accent);background:transparent}
   .opts{display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px;margin-top:18px;font-size:12px;color:var(--mut)}
   label{display:inline-flex;align-items:center;gap:8px;color:var(--mut)}
   input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px}
@@ -422,7 +423,7 @@
           </div>
         </div>
           <div class="card loopcard">
-        <div class="card-title" data-i18n="loops">Loops</div>
+        <div class="card-title" data-i18n="temp_loop">Temporary Loop</div>
         <div id="loopHint"></div>
         <div class="ptRow"><strong>A</strong> <input class="t" type="text" id="aTime" placeholder="--:--" /> <button id="setA" class="mini" title="Set start to current time" data-i18n="set_btn">set</button> <button id="jumpA" class="mini play-mini" title="Play from A">&#9654;</button> <button id="clearA" class="mini" title="Clear A" data-i18n="clear_btn">clear</button></div>
         <div class="ptRow"><strong>B</strong> <input class="t" type="text" id="bTime" placeholder="--:--" /> <button id="setB" class="mini" title="Set end to current time" data-i18n="set_btn">set</button> <button id="jumpB" class="mini play-mini" title="Play from B">&#9654;</button> <button id="clearB" class="mini" title="Clear B" data-i18n="clear_btn">clear</button></div>
@@ -430,6 +431,7 @@
           <button id="loopBtn" class="looptoggle" title="Loop the A–B section">&#10227;</button>
           <button id="saveSection" class="tog" title="Save this A–B as a reusable loop" data-i18n="save_loop">save-loop</button>
         </div>
+        <div class="card-title savedhead" id="savedHead" style="display:none"><span data-i18n="saved_loops">Saved Loops</span><span id="savedCount"></span></div>
         <div id="sections"></div>
       </div>
         </div>
@@ -443,7 +445,7 @@
             <input id="trans" type="range" min="-12" max="12" step="1" value="0" />
             <button class="step" data-delta="trans:1">+</button>
             <span class="readout"><span class="val" id="transV">0</span><span class="unit">st</span></span>
-            <button class="reset" data-reset="trans" title="Reset to default" data-i18n="reset">reset</button>
+            <button class="reset" data-reset="trans" title="Reset to default">↺</button>
           </div>
           <div class="row">
             <span class="lab" data-i18n="pitch_lab">Pitch</span>
@@ -451,7 +453,7 @@
             <input id="pitch" type="range" min="-100" max="100" step="1" value="0" />
             <button class="step" data-delta="pitch:5">+</button>
             <span class="readout"><span class="val" id="pitchV">0</span><span class="unit">&cent;</span></span>
-            <button class="reset" data-reset="pitch" title="Reset to default" data-i18n="reset">reset</button>
+            <button class="reset" data-reset="pitch" title="Reset to default">↺</button>
           </div>
           <div class="row">
             <span class="lab" data-i18n="speed_lab">Speed</span>
@@ -459,7 +461,7 @@
             <input id="speed" type="range" min="25" max="175" step="5" value="100" />
             <button class="step" data-delta="speed:5">+</button>
             <span class="readout"><span class="val" id="speedV">100</span><span class="unit">%</span></span>
-            <button class="reset" data-reset="speed" title="Reset to default" data-i18n="reset">reset</button>
+            <button class="reset" data-reset="speed" title="Reset to default">↺</button>
           </div>
           </div>
           <div class="opts">
@@ -502,9 +504,9 @@ const v = $('v');
 const I18N = {
   en: {
     tagline:"a looping practice tool", open:"open file", load:"load session", save:"save session", saved:"saved ✓",
-    coffee:"buy me a coffee", drop:"drop a file here, or click to browse", loops:"Loops",
-    set_btn:"set", clear_btn:"clear", save_loop:"save-loop", ov_a:"set A", ov_b:"set B",
-    pitch_speed:"Pitch & Speed", transpose:"Transpose", pitch_lab:"Pitch", speed_lab:"Speed",
+    coffee:"buy me a coffee", drop:"drop a file here, or click to browse", loops:"Loops", temp_loop:"Temporary Loop", saved_loops:"Saved Loops",
+    set_btn:"set", clear_btn:"clear", save_loop:"save loop", ov_a:"set A", ov_b:"set B",
+    pitch_speed:"Audio & Speed", transpose:"Transpose", pitch_lab:"Pitch", speed_lab:"Speed",
     reset:"reset", keep_pitch:"keep pitch", song_bpm:"song bpm", install_app:"install app",
     privacy:"runs entirely in your browser · files never leave your device", get_ext:"get the extension for online video",
     install_title:"Install Etude", saved_sessions:"Saved sessions",
@@ -515,16 +517,16 @@ const I18N = {
     hint_loop:"Looping {a}–{b}. Press the loop button again to stop.",
     loop_off:"loop: off", loop_on:"loop: {a}–{b}",
     empty_sessions:"No saved sessions yet. Open a file, set up your loops, then press “save session”.",
-    empty_loops:"No saved loops yet. Mark A–B, then press “save-loop”.",
+    empty_loops:"No saved loops yet. Mark A–B, then press “save loop”.",
     engine_ready:"engine ready", engine_native:"native, transpose off ({err})", prompt_name:"Name this session:",
     install_ios:"Open this page in <b>Safari</b>, tap the <b>Share</b> button {ico} at the bottom, then choose <b>Add to Home Screen</b>. It then runs full-screen and works offline.",
     install_other:"In <b>Chrome / Edge / Brave</b>: click the <b>install icon</b> in the address bar, or open the menu and choose <b>Install page as app</b>.<br><br>In <b>Safari</b> (Mac): <b>File → Add to Dock</b>."
   },
   tr: {
     tagline:"döngüsel çalışma aracı", open:"dosya aç", load:"oturum yükle", save:"oturumu kaydet", saved:"kaydedildi ✓",
-    coffee:"bana kahve ısmarla", drop:"bir dosya bırak veya seçmek için tıkla", loops:"Döngüler",
+    coffee:"bana kahve ısmarla", drop:"bir dosya bırak veya seçmek için tıkla", loops:"Döngüler", temp_loop:"Geçici Döngü", saved_loops:"Kayıtlı Döngüler",
     set_btn:"ayarla", clear_btn:"temizle", save_loop:"döngüyü kaydet", ov_a:"A ayarla", ov_b:"B ayarla",
-    pitch_speed:"Transpose & Hız", transpose:"Transpose", pitch_lab:"İnce Akort", speed_lab:"Hız",
+    pitch_speed:"Ses & Hız", transpose:"Transpose", pitch_lab:"İnce Akort", speed_lab:"Hız",
     reset:"sıfırla", keep_pitch:"akordu koru", song_bpm:"parça bpm", install_app:"uygulamayı yükle",
     privacy:"tamamen tarayıcınızda çalışır · dosyalar cihazınızdan çıkmaz", get_ext:"çevrimiçi video için eklentiyi edinin",
     install_title:"Etude’ü yükle", saved_sessions:"Kayıtlı oturumlar",
@@ -542,9 +544,9 @@ const I18N = {
   },
   de: {
     tagline:"ein Loop-Übungswerkzeug", open:"Datei öffnen", load:"Sitzung laden", save:"Sitzung speichern", saved:"gespeichert ✓",
-    coffee:"spendier mir einen Kaffee", drop:"Datei hierher ziehen oder zum Auswählen klicken", loops:"Loops",
+    coffee:"spendier mir einen Kaffee", drop:"Datei hierher ziehen oder zum Auswählen klicken", loops:"Loops", temp_loop:"Temporärer Loop", saved_loops:"Gespeicherte Loops",
     set_btn:"setzen", clear_btn:"löschen", save_loop:"Loop speichern", ov_a:"A setzen", ov_b:"B setzen",
-    pitch_speed:"Tonhöhe & Tempo", transpose:"Transponieren", pitch_lab:"Tonhöhe", speed_lab:"Tempo",
+    pitch_speed:"Audio & Tempo", transpose:"Transponieren", pitch_lab:"Tonhöhe", speed_lab:"Tempo",
     reset:"zurücksetzen", keep_pitch:"Tonhöhe halten", song_bpm:"Song-BPM", install_app:"App installieren",
     privacy:"läuft komplett im Browser · Dateien verlassen dein Gerät nie", get_ext:"Erweiterung für Online-Video holen",
     install_title:"Etude installieren", saved_sessions:"Gespeicherte Sitzungen",
@@ -954,13 +956,18 @@ function clampTime(t) { return round1(Math.max(0, Math.min(t, pDur() || t))); }
 $('saveSection').onclick = () => {
   if (A == null || B == null) { alert('Set both A and B first.'); return; }
   const s = { id: 's' + (Date.now()), name: 'Loop ' + (sections.length + 1), start: A, end: B };
-  sections.push(s); activeSec = s.id; renderSections(); persist();
+  sections.push(s);
+  A = null; B = null; loopOn = false; activeSec = null;   // clear the working A–B for the next loop (matches the extension)
+  renderSections(); updateAB(); persist();
 };
 function activateSection(s) { A = s.start; B = s.end; loopOn = true; activeSec = s.id; pSeek(A); play(); updateAB(); persist(); }
 
 function renderSections() {
   const box = $('sections'); box.innerHTML = '';
-  if (!sections.length) { box.innerHTML = '<div class="empty" style="padding:4px 2px">' + t("empty_loops") + '</div>'; drawMarks(); return; }
+  const sh = $('savedHead');
+  if (!sections.length) { sh.style.display = 'none'; box.innerHTML = '<div class="empty" style="padding:4px 2px">' + t("empty_loops") + '</div>'; drawMarks(); return; }
+  sh.style.display = '';
+  $('savedCount').textContent = ' · ' + sections.length;
   sections.forEach(s => {
     const row = document.createElement('div');
     row.className = 'sec' + (s.id === activeSec ? ' active' : '');
