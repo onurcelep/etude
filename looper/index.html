@@ -213,6 +213,21 @@
   .ablab{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);font-weight:600}
   .abtime{flex:1;min-width:0;width:auto;text-align:center;color:var(--accent);font-size:14px;padding:5px 6px}
   .abacts{display:flex;gap:6px;flex-wrap:wrap}
+  /* narrow screens: stack A over B so each cell gets full width (no overflow) */
+  @media (max-width:560px){
+    .abstrip{grid-template-columns:1fr}
+    .abcell + .abcell{border-left:0;border-top:1px solid var(--line)}
+  }
+  /* add-to-home-screen suggestion — mobile only, dismissible, slides up */
+  #a2hs{position:fixed;left:12px;right:12px;bottom:12px;z-index:90;display:flex;align-items:center;gap:10px;
+    padding:11px 12px 11px 15px;border:1px solid var(--line-2);border-radius:var(--r);background:var(--card);
+    box-shadow:0 12px 32px -14px rgba(0,0,0,.4);transform:translateY(160%);transition:transform .45s var(--ease-spring)}
+  #a2hs.in{transform:none}
+  #a2hs[hidden]{display:none}
+  #a2hs .a2hs-t{flex:1;min-width:0;font-size:13px;color:var(--ink);line-height:1.35}
+  #a2hs .a2hs-x{flex:none;border:0;background:transparent;color:var(--mut);font-size:20px;line-height:1;padding:2px 6px;cursor:pointer}
+  #a2hs .a2hs-x:hover{color:var(--ink)}
+  @media (min-width:561px){ #a2hs{display:none !important} }
   #loopHint{color:var(--mut);font-size:12px;line-height:1.55;margin:2px 0 16px;letter-spacing:.02em}
   .loopbar{display:flex;align-items:center;gap:9px;margin-top:16px;flex-wrap:wrap}
   .looptoggle{width:40px;height:34px;padding:0;border-radius:var(--r-sm);border:1px solid var(--line-2);background:transparent;color:var(--mut);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.2s var(--ease-out)}
@@ -510,6 +525,12 @@
   </div>
 </div>
 
+<div id="a2hs" hidden>
+  <span class="a2hs-t">📲 <span data-i18n="a2hs">Add Etude Looper to your home screen</span></span>
+  <button id="a2hsGo" class="mini" data-i18n="a2hs_add">install</button>
+  <button id="a2hsX" class="a2hs-x" aria-label="Dismiss">&times;</button>
+</div>
+
 <div id="sessionsModal" hidden>
   <div class="modal-box modal-lg">
     <button class="modal-x" id="sessionsClose" title="Close">&times;</button>
@@ -529,7 +550,7 @@ const I18N = {
     coffee:"buy me a coffee", drop:"drop a file here, or click to browse", loops:"Loops", temp_loop:"Temporary Loop", saved_loops:"Saved Loops",
     set_btn:"set", clear_btn:"clear", save_loop:"save loop", ov_a:"set A", ov_b:"set B",
     pitch_speed:"Audio & Speed", transpose:"Transpose", pitch_lab:"Pitch", speed_lab:"Speed",
-    reset:"reset", keep_pitch:"keep pitch", install_app:"install app",
+    reset:"reset", keep_pitch:"keep pitch", install_app:"install app", a2hs:"Add Etude Looper to your home screen", a2hs_add:"install",
     privacy:"privacy", get_ext:"get the extension for online video",
     install_title:"Install Etude", saved_sessions:"Saved sessions",
     hint_none:"Set a start point (A) and an end point (B) to mark a section, then press the loop button to repeat it.",
@@ -549,7 +570,7 @@ const I18N = {
     coffee:"bana kahve ısmarla", drop:"bir dosya bırak veya seçmek için tıkla", loops:"Döngüler", temp_loop:"Geçici Döngü", saved_loops:"Kayıtlı Döngüler",
     set_btn:"ayarla", clear_btn:"temizle", save_loop:"döngüyü kaydet", ov_a:"A ayarla", ov_b:"B ayarla",
     pitch_speed:"Ses & Hız", transpose:"Transpose", pitch_lab:"İnce Akort", speed_lab:"Hız",
-    reset:"sıfırla", keep_pitch:"akordu koru", install_app:"uygulamayı yükle",
+    reset:"sıfırla", keep_pitch:"akordu koru", install_app:"uygulamayı yükle", a2hs:"Etude Looper'ı ana ekrana ekle", a2hs_add:"yükle",
     privacy:"gizlilik", get_ext:"çevrimiçi video için eklentiyi edinin",
     install_title:"Etude’ü yükle", saved_sessions:"Kayıtlı oturumlar",
     hint_none:"Bir bölümü işaretlemek için başlangıç (A) ve bitiş (B) noktası koy, sonra tekrarlamak için döngü düğmesine bas.",
@@ -569,7 +590,7 @@ const I18N = {
     coffee:"spendier mir einen Kaffee", drop:"Datei hierher ziehen oder zum Auswählen klicken", loops:"Loops", temp_loop:"Temporärer Loop", saved_loops:"Gespeicherte Loops",
     set_btn:"setzen", clear_btn:"löschen", save_loop:"Loop speichern", ov_a:"A setzen", ov_b:"B setzen",
     pitch_speed:"Audio & Tempo", transpose:"Transponieren", pitch_lab:"Tonhöhe", speed_lab:"Tempo",
-    reset:"zurücksetzen", keep_pitch:"Tonhöhe halten", install_app:"App installieren",
+    reset:"zurücksetzen", keep_pitch:"Tonhöhe halten", install_app:"App installieren", a2hs:"Etude Looper zum Startbildschirm hinzufügen", a2hs_add:"installieren",
     privacy:"Datenschutz", get_ext:"Erweiterung für Online-Video holen",
     install_title:"Etude installieren", saved_sessions:"Gespeicherte Sitzungen",
     hint_none:"Setze einen Startpunkt (A) und einen Endpunkt (B), um einen Abschnitt zu markieren, und drücke dann die Loop-Taste zum Wiederholen.",
@@ -1254,6 +1275,17 @@ $('installLink').onclick = (e) => {
 };
 $('installClose').onclick = () => { $('installModal').hidden = true; };
 $('installModal').onclick = (e) => { if (e.target.id === 'installModal') $('installModal').hidden = true; };
+
+/* Add-to-home-screen suggestion on mobile — reuses the install flow, dismissible + remembered */
+(function(){
+  const bar = $('a2hs'); if (!bar) return;
+  const mobile = window.matchMedia('(max-width:560px)').matches;
+  let dismissed = false; try { dismissed = localStorage.getItem('etude.a2hs') === '1'; } catch(e){}
+  if (isStandalone || !mobile || dismissed) return;
+  setTimeout(() => { bar.hidden = false; requestAnimationFrame(() => bar.classList.add('in')); }, 1400);
+  $('a2hsGo').onclick = () => $('installLink').click();
+  $('a2hsX').onclick = () => { bar.classList.remove('in'); setTimeout(() => { bar.hidden = true; }, 320); try { localStorage.setItem('etude.a2hs','1'); } catch(e){} };
+})();
 </script>
 </body>
 </html>
