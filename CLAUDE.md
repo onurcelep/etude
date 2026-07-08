@@ -25,6 +25,14 @@ Currently one tool ships (the Looper). A metronome and a tuner are planned.
 - **You cannot runtime-verify in CI.** The runner has no browser, no http server, and no Chrome DevTools MCP, so you cannot reproduce the audio/DOM behavior the local agent relies on. For any change touching the audio engine or runtime behavior, say so in the PR and ask for a local verify instead of claiming it works.
 - Keep changes small and reviewable, and follow every convention below.
 
+## Slash commands (`.claude/commands/`)
+
+Repeatable flows, available locally and (where they don't need a browser) to `@claude`:
+
+- `/ship-ext [patch|minor|major]` — bump, build the store zips, tag, and cut the extension GitHub Release. Uploading to the stores stays manual.
+- `/verify-mobile [path]` — serve the site and drive Chrome at phone width to catch mobile layout regressions. Local only (needs a browser + http server).
+- `/deploy-check [marker]` — after a push, confirm the live site actually updated, tolerating Pages CDN lag.
+
 ## Layout
 
 ```
