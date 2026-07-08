@@ -22,7 +22,7 @@ Currently one tool ships (the Looper). A metronome and a tuner are planned.
 
 - **Never push to `main`. Open a pull request.** A push to `main` deploys to production (see Golden rules), and only a human should merge. The workflow runs with `contents: read` and PR-based behavior to enforce this; treat it as an absolute rule regardless.
 - **Do not add a build step, and do not edit the deploy/release workflows** (`deploy-pages.yml`, `etude-looper-ext-release.yml`). The no-build-step rule is not negotiable.
-- **You cannot runtime-verify in CI.** The runner has no browser, no http server, and no Chrome DevTools MCP, so you cannot reproduce the audio/DOM behavior the local agent relies on. For any change touching the audio engine or runtime behavior, say so in the PR and ask for a local verify instead of claiming it works.
+- **Runtime verification in CI is label-gated.** By default the @claude runner has no browser. A PR labeled `needs-browser-check` triggers `claude-browser-verify.yml`, which gives the agent headless Chrome via the chrome-devtools MCP (`.github/mcp/ci.mcp.json`) to run the structural checks a local session would: layout overflow, console errors, engine init and position advance. That still cannot judge how audio *sounds*; flag audible-quality changes for a human ear.
 - Keep changes small and reviewable, and follow every convention below.
 
 ## Local vs @claude: who pushes where
