@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#efeee7" id="themeColor" />
 <script>/* set theme before paint to avoid a flash; ?theme=dark|light (e.g. arriving from the extension) wins and is remembered */try{var _p=new URLSearchParams(location.search).get('theme');if(_p!=='dark'&&_p!=='light')_p=null;var _t=_p||localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(_p)localStorage.setItem('etude.theme',_p);document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<script>/* enable entrance motion only when welcome; set before paint */try{if(!matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.classList.add('anim');}catch(e){}</script>
 <link rel="icon" href="icon-192.png" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -174,6 +175,13 @@
   .transport .time{color:var(--mut);font-size:12px;letter-spacing:.04em;margin-left:14px}
 
   .card{background:var(--card);padding:18px 20px;border:1px solid var(--line);border-radius:var(--r)}
+  /* subtle entrance for the panels + a pop when the loop engages (gated by .anim, off for reduced-motion) */
+  :root{--ease-out:cubic-bezier(.2,.8,.2,1);--ease-spring:cubic-bezier(.34,1.3,.5,1);--ease-expo:cubic-bezier(.16,1,.3,1)}
+  @keyframes cardIn{from{opacity:0;translate:0 12px}to{opacity:1;translate:0 0}}
+  @keyframes loopPop{0%{transform:scale(1)}45%{transform:scale(1.09)}100%{transform:scale(1)}}
+  .anim .loopcard,.anim .pitchcard{animation:cardIn .55s var(--ease-expo) both}
+  .anim .pitchcard{animation-delay:110ms}
+  .anim .looptoggle.on{animation:loopPop .32s var(--ease-spring)}
   .card-title{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mut);margin-bottom:16px;display:flex;align-items:center;gap:10px}
   .modal-title,.timeRow,.transport .time,.hist .meta,#engine,#loopState{font-family:var(--mono)}
   .card-title .grow{flex:1}
@@ -206,7 +214,7 @@
   .abacts{display:flex;gap:6px;flex-wrap:wrap}
   #loopHint{color:var(--mut);font-size:12px;line-height:1.55;margin:2px 0 16px;letter-spacing:.02em}
   .loopbar{display:flex;align-items:center;gap:9px;margin-top:16px;flex-wrap:wrap}
-  .looptoggle{width:40px;height:34px;padding:0;border-radius:var(--r-sm);border:1px solid var(--line-2);background:transparent;color:var(--mut);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.13s}
+  .looptoggle{width:40px;height:34px;padding:0;border-radius:var(--r-sm);border:1px solid var(--line-2);background:transparent;color:var(--mut);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.2s var(--ease-out)}
   .looptoggle:disabled{opacity:.4;cursor:not-allowed}
   .looptoggle:disabled:hover{background:transparent;border-color:var(--line-2)}
   .looptoggle.ready{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
