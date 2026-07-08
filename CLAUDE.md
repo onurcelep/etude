@@ -18,7 +18,7 @@ Currently one tool ships (the Looper). A metronome and a tuner are planned.
 
 ## For the @claude GitHub Action (the CI agent)
 
-`@claude` in an issue or PR comment runs Claude Code in GitHub Actions (`.github/workflows/claude.yml`); `.github/workflows/claude-code-review.yml` auto-runs `/code-review` on every PR. When you are that CI agent:
+`@claude` in an issue or PR comment runs Claude Code in GitHub Actions (`.github/workflows/claude.yml`); `.github/workflows/claude-code-review.yml` auto-runs `/code-review` on every PR. Models are pinned in the workflows: **Opus** for the PR review, **Sonnet** for interactive `@claude`. When you are that CI agent:
 
 - **Never push to `main`. Open a pull request.** A push to `main` deploys to production (see Golden rules), and only a human should merge. The workflow runs with `contents: read` and PR-based behavior to enforce this; treat it as an absolute rule regardless.
 - **Do not add a build step, and do not edit the deploy/release workflows** (`deploy-pages.yml`, `etude-looper-ext-release.yml`). The no-build-step rule is not negotiable.
