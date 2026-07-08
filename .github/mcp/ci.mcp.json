@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "chrome-devtools": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--headless",
+        "--isolated",
+        "--chrome-arg=--no-sandbox",
+        "--chrome-arg=--autoplay-policy=no-user-gesture-required"
+      ]
+    }
+  }
+}

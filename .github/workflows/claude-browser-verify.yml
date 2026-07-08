@@ -1,0 +1,52 @@
+name: Claude Browser Verify
+
+# Prototype: lets the CI agent run the same structural browser checks the local
+# agent does (layout, console, engine init) in headless Chrome, via the
+# chrome-devtools MCP server (.github/mcp/ci.mcp.json).
+# Opt-in: only runs when the PR carries the 'needs-browser-check' label.
+
+on:
+  pull_request:
+    types: [opened, synchronize, labeled]
+
+# 'opened' and 'labeled' can fire together when a PR is created with the label;
+# keep only the newest run per PR.
+concurrency:
+  group: browser-verify-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  browser-verify:
+    if: contains(github.event.pull_request.labels.*.name, 'needs-browser-check')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write # the agent posts its verification report as a PR comment
+      issues: read
+      id-token: write
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude browser verification
+        uses: anthropics/claude-code-action@v1
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--model sonnet --mcp-config .github/mcp/ci.mcp.json --allowedTools "Bash,mcp__chrome-devtools"'
+          prompt: |
+            You are verifying PR #${{ github.event.pull_request.number }} of ${{ github.repository }} (an offline, no-build static site; see CLAUDE.md).
+            Run the structural browser checks a local session would, using the chrome-devtools MCP tools (headless Chrome).
+
+            1. Serve the repo root: `python3 -m http.server 8777 &`, then wait until `curl -s -o /dev/null localhost:8777` succeeds.
+            2. For each page `/`, `/looper/`, `/privacy.html`, in BOTH themes (append `?theme=light` / `?theme=dark`), at desktop (1280x800) and phone (390x844) sizes:
+               - no horizontal overflow: `document.documentElement.scrollWidth <= document.documentElement.clientWidth`
+               - zero console errors.
+            3. Looper engine smoke test, best effort: generate a 2s 440 Hz WAV with python3, load it through the Looper file input (upload_file on the input[type=file]), then confirm playback starts and the position readout advances (append `?debug` for the live state readout), and that changing transpose/speed produces no console errors. If any step cannot work in this environment, name the exact step and error instead of skipping silently.
+            4. Post ONE comment on the PR via `gh pr comment ${{ github.event.pull_request.number }} --body ...`: a PASS/FAIL table per check (page x theme x size), any console errors verbatim, and the engine smoke-test outcome.
+
+            Do not commit, push, or modify any file. Report only.
