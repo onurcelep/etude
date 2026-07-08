@@ -213,11 +213,16 @@
   .ablab{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut);font-weight:600}
   .abtime{flex:1;min-width:0;width:auto;text-align:center;color:var(--accent);font-size:14px;padding:5px 6px}
   .abacts{display:flex;gap:6px;flex-wrap:wrap}
-  /* narrow screens: stack A over B so each cell gets full width (no overflow) */
+  /* narrow screens: stack A over B, and tidy the header (brand+theme on row 1, actions below) */
   @media (max-width:560px){
     .abstrip{grid-template-columns:1fr}
     .abcell + .abcell{border-left:0;border-top:1px solid var(--line)}
+    .topbar .grow{display:none}
+    .topbar .subapp{display:none}
+    .topbar .brand{flex-basis:100%}   /* brand on its own row; controls wrap beneath as a group */
   }
+  /* reserve space so the install banner never covers the footer */
+  body.a2hs-open{padding-bottom:96px}
   /* add-to-home-screen suggestion — mobile only, dismissible, slides up */
   #a2hs{position:fixed;left:12px;right:12px;bottom:12px;z-index:90;display:flex;align-items:center;gap:10px;
     padding:11px 12px 11px 15px;border:1px solid var(--line-2);border-radius:var(--r);background:var(--card);
@@ -1282,9 +1287,9 @@ $('installModal').onclick = (e) => { if (e.target.id === 'installModal') $('inst
   const mobile = window.matchMedia('(max-width:560px)').matches;
   let dismissed = false; try { dismissed = localStorage.getItem('etude.a2hs') === '1'; } catch(e){}
   if (isStandalone || !mobile || dismissed) return;
-  setTimeout(() => { bar.hidden = false; requestAnimationFrame(() => bar.classList.add('in')); }, 1400);
+  setTimeout(() => { bar.hidden = false; document.body.classList.add('a2hs-open'); requestAnimationFrame(() => bar.classList.add('in')); }, 1400);
   $('a2hsGo').onclick = () => $('installLink').click();
-  $('a2hsX').onclick = () => { bar.classList.remove('in'); setTimeout(() => { bar.hidden = true; }, 320); try { localStorage.setItem('etude.a2hs','1'); } catch(e){} };
+  $('a2hsX').onclick = () => { bar.classList.remove('in'); document.body.classList.remove('a2hs-open'); setTimeout(() => { bar.hidden = true; }, 320); try { localStorage.setItem('etude.a2hs','1'); } catch(e){} };
 })();
 </script>
 </body>
