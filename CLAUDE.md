@@ -8,11 +8,12 @@ belongs to this repo).
 
 ## Standard rules
 
-- **Remote @claude (CI agent): never push to `main`. Open a pull request.**
-  Keep changes small and reviewable. Full discipline: `factory:release-flow`
-  skill.
-- **Local work: run `/code-review` on the diff before any push that reaches
-  users.** Push/deploy specifics for THIS repo are under `## Project`.
+- **Every change ships via a short-lived branch and a PR; a human merges.
+  Nobody pushes `main` directly** (@claude runs `contents: read` and
+  cannot). Full discipline: `factory:release-flow` skill.
+- **Review before merge:** the auto PR review runs, and `/code-review` for
+  anything nontrivial. What a merge to `main` triggers (deploy, a separate
+  release train, or nothing) is per-repo, under `## Project`.
 - **Model routing: consult the `factory:model-routing` skill** before
   spawning subagents or editing the model pins in
   `.github/workflows/claude*.yml`.
@@ -34,8 +35,8 @@ Currently one tool ships (the Looper). A metronome and a tuner are planned.
 
 - **No build step. Vanilla HTML/CSS/JS only. No npm, no bundler, no framework, no dependencies.** If a change seems to need tooling, it is the wrong change.
 - **Each tool is one self-contained static page.** Tools do not share JS. The only shared asset is design tokens.
-- **Pushing to `main` deploys to production.** The GitHub Actions workflow publishes the whole repo to Pages on every push to `main`. There is no staging. Treat a push as a live release.
-- **Local-first: preview locally, never `git push` until explicitly told to deploy.** Local, unpushed commits use a `[local]` prefix in the commit subject (see git history). Keep that convention.
+- **Every change ships through a branch and a PR; merging the PR to `main` is the deploy. Never push straight to `main`.** The Pages workflow publishes on merge, but only for served files: it ignores `extensions/**` and `.github/**` (`deploy-pages.yml`). There is no staging, so a merge that touches served files is a live release. Verify locally in a real browser before merging, then `/deploy-check` after.
+- **The extension is a separate, deliberate release: a merge never ships it.** Merging extension code only lands it on `main`; users get nothing until you bump `manifest.json` and push an `etude-looper-ext-v*` tag (see the Extension section). Do not conflate "merged" with "released" for the extension.
 - Prose and UI copy: avoid em dashes. Use a period, comma, colon, or `·`.
 
 ### For the @claude GitHub Action (the CI agent)
@@ -46,12 +47,13 @@ Currently one tool ships (the Looper). A metronome and a tuner are planned.
 - **Runtime verification in CI is label-gated.** By default the @claude runner has no browser. A PR labeled `needs-browser-check` triggers `claude-browser-verify.yml`, which gives the agent headless Chrome via the chrome-devtools MCP (`.github/mcp/ci.mcp.json`) to run the structural checks a local session would: layout overflow, console errors, engine init and position advance. That still cannot judge how audio *sounds*; flag audible-quality changes for a human ear.
 - Keep changes small and reviewable, and follow every convention below.
 
-### Local vs @claude: who pushes where
+### How changes ship
 
-Two independent paths; the CI agent setup does **not** change how local work is done.
+One flow for everyone (see `factory:release-flow`): branch off `main`, open a PR, review, then a human merges. Nobody pushes `main` directly.
 
-- **Local (you + this CLI)** — commit, `/code-review`, then push straight to `main` when ready (push = deploy). No PR required. This is the primary path: anything touching the audio engine, Looper layout, or the extension, where a real-browser verify matters.
-- **@claude (remote)** — tag it on an issue or PR for small, describable, or async tasks. It runs in CI, cannot push to `main` (`contents: read`), and **opens a PR** you review and merge (merge = deploy).
+- **Local (you + this CLI)** — work on a short-lived branch, verify in a real browser (the bugs are audio/DOM runtime; the review bot can't hear audio), push the branch, open a PR. The auto Opus review runs; `/code-review` yourself for anything nontrivial. Merge when green: merging the PR deploys the site.
+- **@claude (remote)** — tag it on an issue or PR for small, describable, or async tasks. It runs in CI, cannot push `main` (`contents: read`), and **opens a PR** you review, verify, and merge.
+- Merging deploys the **site** only (path-scoped, see Golden rules). It never releases the extension.
 
 ### Slash commands (`.claude/commands/`)
 
@@ -59,7 +61,7 @@ Repeatable flows, available locally and (where they don't need a browser) to `@c
 
 - `/ship-ext [patch|minor|major]` — bump, build the store zips, tag, and cut the extension GitHub Release. Uploading to the stores stays manual.
 - `/verify-mobile [path]` — serve the site and drive Chrome at phone width to catch mobile layout regressions. Local only (needs a browser + http server).
-- `/deploy-check [marker]` — after a push, confirm the live site actually updated, tolerating Pages CDN lag.
+- `/deploy-check [marker]` — after a merge, confirm the live site actually updated, tolerating Pages CDN lag.
 
 ### Layout
 
@@ -113,7 +115,7 @@ New tools go in their own top-level folder (e.g. `/metronome/`), as a single sel
 **Cross-browser background.** The committed `manifest.json` keeps BOTH `background.service_worker` and `background.scripts` (the documented pattern: Chrome uses the worker and ignores `scripts` with a harmless warning; Firefox uses `scripts`). One unpacked folder loads in either browser for dev. `pack.sh` emits clean per-browser store zips (Chrome: `service_worker` only, no gecko block; Firefox: `scripts` only) so published builds are warning-free.
 
 **Release workflow:**
-1. Land changes on `main` (`[local]` commits, push when ready; a push does not release the extension).
+1. Land extension changes on `main` the normal way (branch, PR, merge). Merging does not release the extension.
 2. `cd extensions/looper && ./release.sh [patch|minor|major]` bumps `manifest.json` and builds `dist/etude-looper-{chrome,firefox}-<version>.zip`. Stores reject an upload whose version is not higher than the last, so always bump.
 3. Verify both browsers from the unpacked folder (`extensions/looper/TESTING.md`); `web-ext lint` the Firefox zip for AMO.
 4. Commit the bump, then `git tag etude-looper-ext-v<version>` and `git push --tags`. The tag push triggers `etude-looper-ext-release.yml`, which rebuilds the zips and attaches them to a GitHub Release (it does not upload to the stores).
@@ -131,8 +133,8 @@ New tools go in their own top-level folder (e.g. `/metronome/`), as a single sel
 - **Verify in a real browser, not just by reading.** The bugs live in audio/DOM runtime behavior. Reproduce first, then fix.
 - **Browser automation is available (Chrome DevTools MCP, user-scoped, so it loads in every session here).** Claude can drive Chrome itself: navigate, screenshot the UI, read the console, inspect the DOM and computed styles, check responsive sizes. Use it to close the verify loop yourself instead of asking the user to look. Typical flow: serve over http (`python3 -m http.server`, default port 8000), point the MCP at `http://localhost:8000/looper/` (append `?debug` for the live AudioContext/position readout), then screenshot and iterate. Note the audio engine needs a user gesture to start, so a bare page load stays silent until you drive a click.
 - **For the `extension/`:** load it unpacked in the driven Chrome (`chrome://extensions` with Developer mode, or launch Chrome with `--load-extension=./extensions/looper`) to screenshot and check the panel and content-script UI the same way.
-- **Review before deploy:** run `/code-review` on the diff, then hold for explicit approval to push (push = live).
-- **Deploy is via GitHub Actions** (`.github/workflows/`), not the legacy branch builder (which once got stuck and jammed the queue). A push runs the workflow. If a run shows `Deployment failed, try again later` (a transient GitHub Pages error, not a code problem), just re-run it: `gh workflow run "Deploy to GitHub Pages" --ref main`. After deploy, verify the live file actually changed (`curl` a marker) since the Pages CDN can lag.
+- **Review before merge:** open a PR (the auto Opus review runs) and run `/code-review` on the diff for anything nontrivial; a human merges. Merging the PR is the deploy.
+- **Deploy is via GitHub Actions** (`.github/workflows/`), not the legacy branch builder (which once got stuck and jammed the queue). A merge to `main` runs the workflow. If a run shows `Deployment failed, try again later` (a transient GitHub Pages error, not a code problem), just re-run it: `gh workflow run "Deploy to GitHub Pages" --ref main`. After merging, verify the live file actually changed (`curl` a marker) since the Pages CDN can lag.
 - **Scale the tooling to the task.** This is a solo, ~1200-line, single-file-per-tool project. Heavy multi-agent orchestration, worktree parallelism, and spec frameworks are overkill for edits to an existing tool. They only start to pay off when building a genuinely new independent tool (metronome, tuner): a short spec first, then build it in isolation.
 
 ### When to use specs, subagents, or workflows
@@ -144,7 +146,7 @@ Match the mechanism to the task, not the tool. These pay off with many independe
 | Bugfix / tweak to an existing tool | No | No | No | One file, fits in context. systematic-debugging + browser verify, inline. |
 | Build a new tool (metronome, tuner) | Yes, ~1 page | No | Maybe 1 (isolated) | Real unknowns worth pinning first. Independent folder = safe to isolate. |
 | A real decision (e.g. which pitch-detection method) | No | Yes (research only) | Yes | Read-only fan-out is the one pattern that pays off at this scale. |
-| Before deploy | No | No | Yes, 1 (`/code-review`) | Single review pass on the diff. |
+| Before merge | No | No | Yes, 1 (`/code-review`) | Single review pass on the diff. |
 
 Efficient defaults:
 
