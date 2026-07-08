@@ -25,6 +25,15 @@ Currently one tool ships (the Looper). A metronome and a tuner are planned.
 - **You cannot runtime-verify in CI.** The runner has no browser, no http server, and no Chrome DevTools MCP, so you cannot reproduce the audio/DOM behavior the local agent relies on. For any change touching the audio engine or runtime behavior, say so in the PR and ask for a local verify instead of claiming it works.
 - Keep changes small and reviewable, and follow every convention below.
 
+## Local vs @claude: who pushes where
+
+Two independent paths; the CI agent setup does **not** change how local work is done.
+
+- **Local (you + this CLI)** — commit, `/code-review`, then push straight to `main` when ready (push = deploy). No PR required. This is the primary path: anything touching the audio engine, Looper layout, or the extension, where a real-browser verify matters.
+- **@claude (remote)** — tag it on an issue or PR for small, describable, or async tasks. It runs in CI, cannot push to `main` (`contents: read`), and **opens a PR** you review and merge (merge = deploy).
+
+The auto Opus PR-review only runs on PRs, so direct-to-`main` local commits skip it — running `/code-review` before pushing is their gate. To have the bot review local work, push it to a branch and open a PR instead of pushing to `main`.
+
 ## Slash commands (`.claude/commands/`)
 
 Repeatable flows, available locally and (where they don't need a browser) to `@claude`:
