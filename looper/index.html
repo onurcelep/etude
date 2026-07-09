@@ -191,6 +191,9 @@
   /* Pitch & Speed: compact single-line rows (full width) */
   .row{display:grid;grid-template-columns:82px 22px minmax(0,1fr) 22px 70px auto;align-items:center;gap:13px;margin:14px 0}
   .row:first-of-type{margin-top:0}
+  /* let the native range shrink into its grid track; without min-width:0 it keeps its ~110px
+     intrinsic min-width and overflows onto the +/- buttons, which reads as "off axis" on phones */
+  .row input[type=range]{min-width:0}
   .row .lab{width:82px;color:var(--mut);font-size:12.5px;text-transform:lowercase;letter-spacing:.02em}
   .row .step{width:22px;height:22px;border:none;background:transparent;color:var(--mut);font-size:15px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm)}
   .row .step:hover{color:var(--accent);background:var(--paper-2)}
@@ -203,6 +206,11 @@
   .opts{display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px;margin-top:18px;font-size:12px;color:var(--mut)}
   label{display:inline-flex;align-items:center;gap:8px;color:var(--mut)}
   input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px}
+  /* phones: tighten the fixed columns so the slider keeps usable width and +/- stay flanking it */
+  @media (max-width:440px){
+    .pitchcard .row{grid-template-columns:62px 20px minmax(0,1fr) 20px 50px 18px;gap:9px}
+    .pitchcard .row .lab{width:62px}
+  }
 
   /* loop / sections */
   /* A|B marker strip — segmented two-cell look, matching the extension */
