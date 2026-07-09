@@ -14,7 +14,7 @@ Open a local video or audio file, loop a passage, slow it down, and change the k
 
 - **Loop sections (A–B):** mark a start and end, drag the markers, save named loops and switch between them.
 - **Transpose & pitch:** shift by semitones (and fine cents) independently of speed.
-- **Speed:** 25%–200% with "keep pitch" (time-stretch), plus an optional song-BPM readout.
+- **Speed:** 25%–175% with "keep pitch" (pitch-preserving time-stretch).
 - **Audio or video:** the file's audio is decoded and played through [Signalsmith Stretch](https://github.com/Signalsmith-Audio/signalsmith-stretch), so transpose and slow-down work together smoothly; the video follows, muted.
 - **Sessions:** save a file with its loops and settings, then reopen it instantly (stored locally via IndexedDB).
 - **Light / dark**, **English / Türkçe / Deutsch** (auto-detected), and an **installable PWA** that works offline.
