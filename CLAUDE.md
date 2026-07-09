@@ -91,7 +91,7 @@ New tools go in their own top-level folder (e.g. `/metronome/`), as a single sel
 
 - **Audio engine:** the decoded file audio is played through Signalsmith Stretch (`signalsmith-stretch.mjs`, a WASM AudioWorklet) via the Web Audio API, so transpose and time-stretch compose. Video, if present, is muted and follows the engine's position; play/pause is driven from the video element's events (the video is the visual clock, the engine is the audio).
 - **Transport/loop:** A-B markers (draggable dots), named saved loops, play-from-marker.
-- **Controls:** transpose (semitones), pitch (cents), speed, keep-pitch, optional song-BPM readout. Sliders center their **neutral** value so the dots line up across rows: transpose/pitch are symmetric (±12, ±100), and speed is **25-175% linear** (100% at center). Pitch & Speed rows use a CSS grid with fixed columns so value/unit align.
+- **Controls:** transpose (semitones), pitch (cents), speed, keep-pitch. Sliders center their **neutral** value so the dots line up across rows: transpose/pitch are symmetric (±12, ±100), and speed is **25-175% linear** (100% at center). Pitch & Speed rows use a CSS grid with fixed columns so value/unit align.
 
 #### Signalsmith engine gotchas (hard-won; expect this class of bug)
 
