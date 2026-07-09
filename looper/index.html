@@ -6,7 +6,7 @@
 <title>Etude · loop, slow down, transpose</title>
 <meta name="description" content="Loop, slow down, and transpose your own audio & video to practice. Private and offline, right in your browser." />
 <link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#efeee7" id="themeColor" />
+<meta name="theme-color" content="#f3efe4" id="themeColor" />
 <script>/* set theme before paint to avoid a flash; ?theme=dark|light (e.g. arriving from the extension) wins and is remembered */try{var _p=new URLSearchParams(location.search).get('theme');if(_p!=='dark'&&_p!=='light')_p=null;var _t=_p||localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');if(_p)localStorage.setItem('etude.theme',_p);document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <script>/* enable entrance motion only when welcome; set before paint */try{if(!matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.classList.add('anim');}catch(e){}</script>
 <link rel="icon" href="icon-192.png" />
@@ -23,10 +23,10 @@
   @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;
     src:url("fonts/fraunces-italic.woff2") format("woff2")}
   :root{
-    /* SCORE (light): cool manuscript paper, ink text, rehearsal-pencil red as the one accent */
-    --paper:#efeee7; --card:#faf9f5; --paper-2:#e7e5db;
-    --ink:#17181c; --mut:#6f6e68; --faint:#a2a199;
-    --line:#dedcd2; --line-2:#cdcbbf;
+    /* SCORE (light): WARM manuscript paper, warm-black ink, rehearsal-pencil red as the one accent */
+    --paper:#f3efe4; --card:#fbf8f0; --paper-2:#ebe5d6;
+    --ink:#211f1a; --mut:#756f61; --faint:#a9a290;
+    --line:#e3ddce; --line-2:#d5ccb8;
     --accent:#b3372b; --accent-2:#8f2b21; --accent-soft:rgba(179,55,43,.10); --red:#b3372b;
     --r:11px; --r-sm:7px;
     --mono:"SFMono-Regular",ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,"Courier New",monospace;
@@ -34,8 +34,8 @@
     --display:"Fraunces","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
   }
   [data-theme="dark"]{
-    --paper:#121114; --card:#1a191e; --paper-2:#24222b;
-    --ink:#eeecef; --mut:#918e98; --faint:#6a6772;
+    --paper:#141210; --card:#1c1917; --paper-2:#282320;
+    --ink:#f0ece4; --mut:#968f82; --faint:#6d675d;
     --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.18);
     --accent:#e6a94a; --accent-2:#f0b95e; --accent-soft:rgba(230,169,74,.15); --red:#e0664f;
   }
@@ -248,6 +248,7 @@
   #a2hs .a2hs-x:hover{color:var(--ink)}
   @media (min-width:561px){ #a2hs{display:none !important} }
   #loopHint{color:var(--mut);font-size:12px;line-height:1.55;margin:2px 0 16px;letter-spacing:.02em}
+  #loopHint .secval{color:var(--accent);font-variant-numeric:tabular-nums;font-weight:500}
   .loopbar{display:flex;align-items:center;gap:9px;margin-top:16px;flex-wrap:wrap}
   .looptoggle{width:40px;height:34px;padding:0;border-radius:var(--r-sm);border:1px solid var(--line-2);background:transparent;color:var(--mut);font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;transition:.2s var(--ease-out)}
   .looptoggle:disabled{opacity:.4;cursor:not-allowed}
@@ -415,6 +416,53 @@
   [data-theme="dark"] #audioArt .wave{gap:3px;height:16px}
   [data-theme="dark"] #audioArt .wave span{width:6px;background:var(--accent);opacity:.5;border-radius:1px}
   @media (prefers-reduced-motion:reduce){[data-theme="dark"] .reel{animation:none!important}}
+
+  /* ============ Player layout: waveform rail, active-parameter tint, two-card + segmented loop, centered transport ============ */
+  /* 1 · active-parameter tint: label + value go accent when a control leaves its neutral */
+  .row .lab,.row .val,.row .unit{transition:color .18s}
+  .row.active .lab,.row.active .val,.row.active .unit{color:var(--accent)}
+  [data-theme="light"] .row.active .lab{color:var(--accent)}
+  [data-theme="dark"] .pitchcard .row.active .val{color:var(--accent)}
+  /* 2 · PCM waveform painted into the timeline rail, behind the playhead/region/handles */
+  #bar #wave{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit;pointer-events:none;opacity:.62}
+  [data-theme="dark"] #bar #wave{opacity:.5}
+  /* 2a · match the dark rail height to light so the waveform has room to read */
+  [data-theme="dark"] #bar{height:34px}
+  /* 2b · audio-only files: skip the logo panel; the waveform in the rail is the indicator */
+  #vwrap.audio{display:none}
+  /* 3 · Stitch layout: full-width player up top, then Temporary Loop + Audio & Speed side by side (equal height), Saved Loops full-width below */
+  .cards{display:flex;flex-direction:column;gap:16px}
+  @media (min-width:760px){
+    .cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch}
+  }
+  /* Saved Loops as its own card so the loop controls stay compact and the two cards balance */
+  .savedcard .savedhead{margin-top:0;border-top:0;padding-top:0}
+  .savedcard:not(:has(.sec)){display:none}
+  /* the A/B time field only needs room for a timestamp, not the whole cell */
+  .abstrip .abtime{flex:0 0 auto;width:104px;min-width:0}
+  /* keep A and B side by side down to smaller widths now that each is compact */
+  @media (max-width:560px){ .abstrip{grid-template-columns:1fr 1fr} .abcell + .abcell{border-left:1px solid var(--line);border-top:0} }
+  @media (max-width:380px){ .abstrip{grid-template-columns:1fr} .abcell + .abcell{border-left:0;border-top:1px solid var(--line)} }
+  /* loop A/B actions as icons (record dot = set, triangle = play, bin = clear): less text, no translation, tighter */
+  .abacts .mini{display:inline-flex;align-items:center;justify-content:center;padding:6px 10px}
+  .abacts .mini svg{width:15px;height:15px;display:block}
+  .abacts .setbtn{color:var(--accent)}
+  .abacts .delbtn:hover{color:var(--accent);border-color:var(--accent)}
+  /* === Stitch playback layout: centered transport, big time readout, volume below === */
+  .transport{flex-direction:column;align-items:center;gap:14px}
+  .transport .tbtns{display:flex;align-items:center;gap:16px}
+  .transport .play{width:56px;height:56px}
+  .transport .play svg{width:24px;height:24px}
+  .bigtime{font-family:var(--mono);font-size:30px;line-height:1;letter-spacing:.01em;text-align:center;color:var(--faint)}
+  .bigtime b{color:var(--accent);font-weight:600}
+  .bigtime .sep,.bigtime .tot{color:var(--faint)}
+  .transport .volrow{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;max-width:340px}
+  .transport .volrow .volrange{flex:1;width:auto;max-width:220px}
+  /* === Stitch loop layout: one segmented SET A · SET B · CLEAR row === */
+  .abrow{display:grid;grid-template-columns:1fr 1fr 1fr;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden;margin:12px 0}
+  .abrow .segbtn{border:0;border-radius:0;background:transparent;color:var(--ink);padding:13px 8px;font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .12s,color .12s}
+  .abrow .segbtn + .segbtn{border-left:1px solid var(--line)}
+  .abrow .segbtn:hover{background:var(--paper-2);color:var(--accent)}
 </style>
 </head>
 <body>
@@ -454,46 +502,42 @@
             </div>
           </div>
 
-          <div id="bar"><div id="played"></div><div id="region"></div><div id="handleA" class="handle a" title="Drag to move A"></div><div id="handleB" class="handle b" title="Drag to move B"></div></div>
+          <div id="bar"><canvas id="wave" aria-hidden="true"></canvas><div id="played"></div><div id="region"></div><div id="handleA" class="handle a" title="Drag to move A"></div><div id="handleB" class="handle b" title="Drag to move B"></div></div>
           <div id="track"></div>
           <div class="timeRow"><span id="loopState">loop: off</span></div>
 
           <div class="transport">
-            <button class="icon" id="toStart" title="Restart"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="6" width="2" height="12" rx="1"/><path d="M19 6v12l-9-6z"/></svg></button>
-            <button class="icon" id="back5" title="Back 5s"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.5 6v12l-8-6z"/><path d="M20 6v12l-8-6z"/></svg></button>
-            <button class="play" id="play" title="Play / Pause"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
-            <button class="icon" id="fwd5" title="Forward 5s"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6v12l8-6z"/><path d="M12.5 6v12l8-6z"/></svg></button>
-            <span class="time" id="time">0:00.0 / 0:00.0</span>
-            <span class="grow"></span>
-            <span class="vol">
+            <div class="tbtns">
+              <button class="icon" id="toStart" title="Restart"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="6" width="2" height="12" rx="1"/><path d="M19 6v12l-9-6z"/></svg></button>
+              <button class="icon" id="back5" title="Back 5s"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.5 6v12l-8-6z"/><path d="M20 6v12l-8-6z"/></svg></button>
+              <button class="play" id="play" title="Play / Pause"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+              <button class="icon" id="fwd5" title="Forward 5s"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 6v12l8-6z"/><path d="M12.5 6v12l8-6z"/></svg></button>
+            </div>
+            <div class="bigtime" id="time"><b>0:00.0</b><span class="sep"> / </span><span class="tot">0:00.0</span></div>
+            <div class="volrow">
               <button class="icon" id="muteBtn" title="Mute / unmute"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9.5v5h3.3L12 18V6L7.3 9.5z"/><path d="M15.5 9a3.3 3.3 0 0 1 0 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
               <input id="vol" class="volrange" type="range" min="0" max="1" step="0.01" value="1" title="Volume" />
-            </span>
-            <button class="icon" id="fsBtn" title="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg></button>
+              <button class="icon" id="fsBtn" title="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M16 20h4v-4"/></svg></button>
+            </div>
           </div>
         </div>
+        </div>
+        <div class="cards">
           <div class="card loopcard">
         <div class="card-title" data-i18n="temp_loop">Temporary Loop</div>
         <div id="loopHint"></div>
-        <div class="abstrip">
-          <div class="abcell">
-            <div class="abhead"><span class="ablab">A</span> <input class="t abtime" type="text" id="aTime" placeholder="--:--" /></div>
-            <div class="abacts"><button id="setA" class="mini" title="Set start to current time" data-i18n="set_btn">set</button> <button id="jumpA" class="mini play-mini" title="Play from A">&#9654;</button> <button id="clearA" class="mini" title="Clear A" data-i18n="clear_btn">clear</button></div>
-          </div>
-          <div class="abcell">
-            <div class="abhead"><span class="ablab">B</span> <input class="t abtime" type="text" id="bTime" placeholder="--:--" /></div>
-            <div class="abacts"><button id="setB" class="mini" title="Set end to current time" data-i18n="set_btn">set</button> <button id="jumpB" class="mini play-mini" title="Play from B">&#9654;</button> <button id="clearB" class="mini" title="Clear B" data-i18n="clear_btn">clear</button></div>
-          </div>
+        <div class="abrow">
+          <button id="setA" class="segbtn" data-i18n="ov_a" title="Set start (A) to current time">SET A</button>
+          <button id="setB" class="segbtn" data-i18n="ov_b" title="Set end (B) to current time">SET B</button>
+          <button id="clearA" class="segbtn segclear" data-i18n="clear_btn" title="Clear the loop points">CLEAR</button>
         </div>
+        <!-- legacy per-marker controls kept (hidden) so their wired handlers stay valid; the segmented row above drives them -->
+        <span hidden><input id="aTime" type="text" /><input id="bTime" type="text" /><button id="jumpA"></button><button id="jumpB"></button><button id="clearB"></button></span>
         <div class="loopbar">
           <button id="loopBtn" class="looptoggle" title="Loop the A–B section">&#10227;</button>
           <button id="saveSection" class="tog" title="Save this A–B as a reusable loop" data-i18n="save_loop">save-loop</button>
         </div>
-        <div class="card-title savedhead" id="savedHead" style="display:none"><span data-i18n="saved_loops">Saved Loops</span><span id="savedCount"></span></div>
-        <div class="secwrap"><div id="sections"></div><div class="secsbar" id="secSbar"></div></div>
       </div>
-        </div>
-        <div class="side">
           <div class="card pitchcard">
           <div class="card-title" data-i18n="pitch_speed">Pitch &amp; Speed</div>
           <div class="strip">
@@ -527,6 +571,10 @@
           </div>
         </div>
                   </div>
+        <div class="card savedcard">
+        <div class="card-title savedhead" id="savedHead" style="display:none"><span data-i18n="saved_loops">Saved Loops</span><span id="savedCount"></span></div>
+        <div class="secwrap"><div id="sections"></div><div class="secsbar" id="secSbar"></div></div>
+        </div>
       </div>
     </div>
     <footer>
@@ -825,7 +873,7 @@ let sections = [];
    FILE LOADING
    ========================================================================= */
 /* brand is now a link back to the Etude hub (../); the drop zone + "open file" button open files */
-$('drop').onclick = () => { ensureCtx(); $('file').click(); };
+$('drop').onclick = () => { $('file').click(); };   // don't resume the AudioContext here: the first-tap unlock + openMedia handle it, and resuming would restart paused audio
 $('file').onchange = e => { if (e.target.files[0]) load(e.target.files[0]); };
 ['dragenter','dragover'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $('drop').classList.add('hover'); }));
 ['dragleave','drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $('drop').classList.remove('hover'); }));
@@ -1008,6 +1056,7 @@ async function openMedia(blob, id, name, size, sessionData) {
   }
   setPitchEnabled(bufferMode); setEngine();
   applySession();     // sets the sliders; the engine adopts them when play() builds it
+  requestAnimationFrame(drawWave);   // paint the PCM into the timeline once the rail has layout
   try { v.pause(); } catch (e) {}
   setPlayUI(false);   // don't autoplay: the first Play tap is the user gesture iOS needs to route the engine's audio
   updateSaveUI();
@@ -1051,7 +1100,35 @@ document.querySelectorAll('[data-reset]').forEach(b => b.onclick = () => {
 $('speed').oninput = () => { applySpeed(); persist(); };
 $('keepPitch').onchange = () => { applyKeepPitch(); persist(); };
 
-function updateResets() { document.querySelectorAll('[data-reset]').forEach(b => { const id = b.dataset.reset; b.classList.toggle('show', (+$(id).value) !== DEF[id]); }); }
+function updateResets() { document.querySelectorAll('[data-reset]').forEach(b => { const id = b.dataset.reset; b.classList.toggle('show', (+$(id).value) !== DEF[id]); }); markActive(); }
+// Tint a parameter row's label + value when it leaves its neutral value, so what's engaged reads at a glance.
+function markActive() {
+  ['trans', 'pitch', 'speed'].forEach(id => {
+    const el = $(id), row = el && el.closest('.row');
+    if (row) row.classList.toggle('active', (+el.value) !== DEF[id]);
+  });
+}
+// Paint the decoded PCM into the timeline rail (min/max envelope per pixel column).
+let _waveTimer = null;
+function drawWave() {
+  const cv = $('wave'), bar = $('bar'); if (!cv || !bar) return;
+  const ctx = cv.getContext('2d'); if (!ctx) return;
+  const W = bar.clientWidth, H = bar.clientHeight;
+  if (!buffer || !W || !H || bar.style.display === 'none') { cv.width = cv.width; return; }   // clear when no buffer
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
+  ctx.fillStyle = (getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()) || '#b3372b';
+  const data = buffer.getChannelData(0), n = data.length, step = n / W, mid = H / 2, amp = mid - 2;
+  for (let x = 0; x < W; x++) {
+    let mn = 1, mx = -1;
+    const s0 = (x * step) | 0, s1 = Math.min(n, ((x + 1) * step) | 0);
+    for (let i = s0; i < s1; i++) { const v = data[i]; if (v < mn) mn = v; if (v > mx) mx = v; }
+    if (s1 <= s0) { mn = 0; mx = 0; }
+    const y0 = mid - mx * amp, h = Math.max(1, (mx - mn) * amp);
+    ctx.fillRect(x, y0, 1, h);
+  }
+}
+window.addEventListener('resize', () => { clearTimeout(_waveTimer); _waveTimer = setTimeout(drawWave, 120); });
 function applyPitchLabels() { $('transV').textContent = signed(+$('trans').value); $('pitchV').textContent = signed(+$('pitch').value); updateResets(); }
 function applySpeed() {
   const speed = (+$('speed').value) / 100;
@@ -1129,7 +1206,7 @@ function tick() {
     }
     if ((frameN++ & 3) === 0) {   // repaint the bar/time only ~15×/s to spare the decoder
       $('played').style.width = pct(t) + '%';
-      $('time').textContent = fmt(t) + ' / ' + fmt(pDur());
+      $('time').innerHTML = '<b>' + fmt(t) + '</b><span class="sep"> / </span><span class="tot">' + fmt(pDur()) + '</span>';
     }
   }
   requestAnimationFrame(tick);   // loop boundary checked every frame (tight)
@@ -1187,7 +1264,7 @@ $('setA').onclick = () => { A = round1(pTime()); if (B != null && A > B) [A, B] 
 $('setB').onclick = () => { B = round1(pTime()); if (A != null && B < A) [A, B] = [B, A]; activeSec = null; updateAB(); persist(); };
 $('jumpA').onclick = () => { if (A != null) { pSeek(A); play(); } };
 $('jumpB').onclick = () => { if (B != null) { pSeek(B); play(); } };
-$('clearA').onclick = () => { A = null; loopOn = false; activeSec = null; updateAB(); persist(); };
+$('clearA').onclick = () => { A = null; B = null; loopOn = false; activeSec = null; updateAB(); persist(); };   /* single CLEAR button wipes both A and B */
 $('clearB').onclick = () => { B = null; loopOn = false; activeSec = null; updateAB(); persist(); };
 $('aTime').onchange = () => { const t = parseTime($('aTime').value); if (t != null) { A = clampTime(t); if (B != null && A > B) [A, B] = [B, A]; activeSec = null; updateAB(); persist(); } else updateAB(); };
 $('bTime').onchange = () => { const t = parseTime($('bTime').value); if (t != null) { B = clampTime(t); if (A != null && B < A) [A, B] = [B, A]; activeSec = null; updateAB(); persist(); } else updateAB(); };
@@ -1264,13 +1341,14 @@ function updateAB() {
   $('ovLoop').classList.toggle('on', loopOn && ready);
 
   // guidance line: always tells the user the next step
+  const sv = (v) => '<span class="secval">' + v + '</span>';   // tint the selected section's time values, like the active-parameter readouts
   let hint;
   if (A == null && B == null) hint = t("hint_none");
-  else if (A != null && B == null) hint = t("hint_a", { a: fmt(A) });
-  else if (A == null && B != null) hint = t("hint_b", { b: fmt(B) });
-  else if (!loopOn) hint = t("hint_ready", { a: fmt(A), b: fmt(B) });
-  else hint = t("hint_loop", { a: fmt(A), b: fmt(B) });
-  $('loopHint').textContent = hint;
+  else if (A != null && B == null) hint = t("hint_a", { a: sv(fmt(A)) });
+  else if (A == null && B != null) hint = t("hint_b", { b: sv(fmt(B)) });
+  else if (!loopOn) hint = t("hint_ready", { a: sv(fmt(A)), b: sv(fmt(B)) });
+  else hint = t("hint_loop", { a: sv(fmt(A)), b: sv(fmt(B)) });
+  $('loopHint').innerHTML = hint;
 
   // timeline band: faint as soon as both points exist, solid while looping
   const reg = $('region'), hA = $('handleA'), hB = $('handleB'), d = pDur();
@@ -1317,7 +1395,7 @@ function drawMarks() {
 /* =========================================================================
    HISTORY SIDEBAR
    ========================================================================= */
-$('openBtn').onclick = () => { ensureCtx(); $('file').click(); };
+$('openBtn').onclick = () => { $('file').click(); };   // opening a file must not resume paused playback (ensureCtx would); unlock is handled by the first-tap handler + openMedia
 $('loadSessionBtn').onclick = () => { renderHistory(); $('sessionsModal').hidden = false; };
 $('sessionsClose').onclick = () => { $('sessionsModal').hidden = true; };
 $('sessionsModal').onclick = (e) => { if (e.target.id === 'sessionsModal') $('sessionsModal').hidden = true; };
