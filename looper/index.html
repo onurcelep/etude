@@ -51,6 +51,8 @@
   button.primary:hover{background:var(--accent-2);border-color:var(--accent-2)}
   button.on{background:var(--accent);border-color:var(--accent);color:var(--paper)}
   .tog,.mini{padding:5px 10px;font-size:12px;letter-spacing:.01em}
+  /* no double-tap-to-zoom on controls: repeated +/- taps should change the value, not zoom the page (pinch-zoom still works) */
+  button,input,label,.step,.reset{touch-action:manipulation}
   input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;background:var(--line-2);flex:1;min-width:110px;outline:none}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;background:var(--accent);border:2px solid var(--card);box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:grab;transition:transform .1s}
   input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
@@ -191,6 +193,9 @@
   /* Pitch & Speed: compact single-line rows (full width) */
   .row{display:grid;grid-template-columns:82px 22px minmax(0,1fr) 22px 70px auto;align-items:center;gap:13px;margin:14px 0}
   .row:first-of-type{margin-top:0}
+  /* let the native range shrink into its grid track; without min-width:0 it keeps its ~110px
+     intrinsic min-width and overflows onto the +/- buttons, which reads as "off axis" on phones */
+  .row input[type=range]{min-width:0}
   .row .lab{width:82px;color:var(--mut);font-size:12.5px;text-transform:lowercase;letter-spacing:.02em}
   .row .step{width:22px;height:22px;border:none;background:transparent;color:var(--mut);font-size:15px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm)}
   .row .step:hover{color:var(--accent);background:var(--paper-2)}
@@ -203,6 +208,11 @@
   .opts{display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px;margin-top:18px;font-size:12px;color:var(--mut)}
   label{display:inline-flex;align-items:center;gap:8px;color:var(--mut)}
   input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px}
+  /* phones: tighten the fixed columns so the slider keeps usable width and +/- stay flanking it */
+  @media (max-width:440px){
+    .pitchcard .row{grid-template-columns:62px 20px minmax(0,1fr) 20px 50px 18px;gap:9px}
+    .pitchcard .row .lab{width:62px}
+  }
 
   /* loop / sections */
   /* A|B marker strip — segmented two-cell look, matching the extension */
@@ -566,7 +576,7 @@ const I18N = {
     loop_off:"loop: off", loop_on:"loop: {a}–{b}",
     empty_sessions:"No saved sessions yet. Open a file, set up your loops, then press “save session”.",
     empty_loops:"No saved loops yet. Mark A–B, then press “save loop”.",
-    engine_ready:"engine ready", engine_native:"native, transpose off ({err})", prompt_name:"Name this session:",
+    engine_ready:"engine ready", engine_native:"native, transpose off ({err})", preparing:"preparing hi-fi audio…", prompt_name:"Name this session:",
     install_ios:"Open this page in <b>Safari</b>, tap the <b>Share</b> button {ico} at the bottom, then choose <b>Add to Home Screen</b>. It then runs full-screen and works offline.",
     install_other:"In <b>Chrome / Edge / Brave</b>: click the <b>install icon</b> in the address bar, or open the menu and choose <b>Install page as app</b>.<br><br>In <b>Safari</b> (Mac): <b>File → Add to Dock</b>."
   },
@@ -586,7 +596,7 @@ const I18N = {
     loop_off:"döngü: kapalı", loop_on:"döngü: {a}–{b}",
     empty_sessions:"Henüz kayıtlı oturum yok. Bir dosya aç, döngülerini kur, sonra “oturumu kaydet”e bas.",
     empty_loops:"Henüz kayıtlı döngü yok. A–B işaretle, sonra “döngüyü kaydet”e bas.",
-    engine_ready:"motor hazır", engine_native:"yerel, transpoze kapalı ({err})", prompt_name:"Bu oturuma bir ad ver:",
+    engine_ready:"motor hazır", engine_native:"yerel, transpoze kapalı ({err})", preparing:"hi-fi ses hazırlanıyor…", prompt_name:"Bu oturuma bir ad ver:",
     install_ios:"Bu sayfayı <b>Safari</b>’de aç, alttaki <b>Paylaş</b> düğmesine {ico} dokun, sonra <b>Ana Ekrana Ekle</b>’yi seç. Ardından tam ekran çalışır ve çevrimdışı kullanılır.",
     install_other:"<b>Chrome / Edge / Brave</b>’de: adres çubuğundaki <b>yükle simgesine</b> tıkla ya da menüden <b>Sayfayı uygulama olarak yükle</b>’yi seç.<br><br><b>Safari</b> (Mac): <b>Dosya → Dock’a Ekle</b>."
   },
@@ -606,7 +616,7 @@ const I18N = {
     loop_off:"Loop: aus", loop_on:"Loop: {a}–{b}",
     empty_sessions:"Noch keine gespeicherten Sitzungen. Öffne eine Datei, richte deine Loops ein und drücke dann „Sitzung speichern“.",
     empty_loops:"Noch keine gespeicherten Loops. Markiere A–B und drücke dann „Loop speichern“.",
-    engine_ready:"Engine bereit", engine_native:"nativ, Transponieren aus ({err})", prompt_name:"Benenne diese Sitzung:",
+    engine_ready:"Engine bereit", engine_native:"nativ, Transponieren aus ({err})", preparing:"Hi-Fi-Audio wird vorbereitet…", prompt_name:"Benenne diese Sitzung:",
     install_ios:"Öffne diese Seite in <b>Safari</b>, tippe unten auf <b>Teilen</b> {ico} und wähle dann <b>Zum Home-Bildschirm</b>. Sie läuft dann im Vollbild und offline.",
     install_other:"In <b>Chrome / Edge / Brave</b>: Klicke auf das <b>Installieren-Symbol</b> in der Adressleiste oder wähle im Menü <b>Seite als App installieren</b>.<br><br>In <b>Safari</b> (Mac): <b>Ablage → Zum Dock hinzufügen</b>."
   }
@@ -635,11 +645,42 @@ const ICON_MUTE  = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 9.5
    ========================================================================= */
 /* ---- engine state: decoded-buffer playback (Signalsmith tempo+pitch) + muted, synced video ---- */
 let ac = null, gainNode = null, shifter = null, buffer = null, bufferMode = false, engineState = null, shifterOn = false;
+let mediaDbg = null;   // last-opened file + decode outcome, shown in the ?debug readout for on-device diagnosis
+let preparing = false; // true while we're getting a file's audio into the engine (decode/demux/capture)
+let _dbgAn = null, _unlocked = false;   // ?debug output meter + one-time iOS audio-session unlock
 let volume = parseFloat(localStorage.getItem('vlooper.vol') || '1'); let muted = false;
 
+/* iOS routes pure Web Audio through the "ambient" session, which the hardware silent switch
+   MUTES. A non-muted media element playing promotes the app to the "playback" session (ignores
+   the switch). Our video is muted (engine owns the audio), so we keep a tiny silent <audio>
+   looping during playback to hold the playback session and let the engine be heard. */
+let _iosKick = null;
+function iosKickStart() {
+  if (!_iosKick) {
+    const sr = 8000, n = sr, buf = new ArrayBuffer(44 + n * 2), dv = new DataView(buf);
+    const wr = (o, s) => { for (let i = 0; i < s.length; i++) dv.setUint8(o + i, s.charCodeAt(i)); };
+    wr(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); wr(8, 'WAVE'); wr(12, 'fmt ');
+    dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+    dv.setUint32(24, sr, true); dv.setUint32(28, sr * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true);
+    wr(36, 'data'); dv.setUint32(40, n * 2, true);   // samples left zero → silent
+    _iosKick = new Audio(); _iosKick.loop = true; _iosKick.playsInline = true;
+    _iosKick.src = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  }
+  _iosKick.play().catch(() => {});
+}
+function iosKickStop() { if (_iosKick) { try { _iosKick.pause(); } catch (e) {} } }
+
 function ensureCtx() {
-  if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); gainNode = ac.createGain(); gainNode.connect(ac.destination); applyVol(); }
+  if (!ac) {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    gainNode = ac.createGain(); gainNode.connect(ac.destination);
+    if (location.search.includes('debug')) { try { _dbgAn = ac.createAnalyser(); _dbgAn.fftSize = 2048; gainNode.connect(_dbgAn); } catch (e) {} }
+    applyVol();
+  }
   if (ac.state === 'suspended') ac.resume();
+  if (!_unlocked) {   // iOS: wake the audio session with a 1-sample silent buffer (must run inside a user gesture)
+    try { const s = ac.createBufferSource(); s.buffer = ac.createBuffer(1, 1, 22050); s.connect(ac.destination); s.start(0); _unlocked = true; } catch (e) {}
+  }
 }
 
 /* ---- time-stretch / pitch engine: Signalsmith Stretch (WASM, AudioWorklet) ---- */
@@ -678,18 +719,32 @@ const pDur  = () => bufferMode ? (shifter ? shifter.duration : 0) : (v.duration 
 const pTime = () => bufferMode ? (shifter ? shifter.percentagePlayed / 100 * shifter.duration : 0) : v.currentTime;
 const pPaused = () => v.paused;
 function pSeek(t) {
+  if (preparing) return;   // don't disturb the audio-prep pass (a capture plays the file through)
   const d = pDur(); t = Math.max(0, Math.min(t, d || t));
   // NB: the engine percentagePlayed setter takes a 0–1 fraction (getter returns 0–100).
   if (bufferMode && shifter) shifter.percentagePlayed = d ? (t / d) : 0;   // setter also clears the pipe internally
   try { v.currentTime = t; } catch (e) {}
 }
-function play() {
-  if (bufferMode) { ensureCtx(); if (shifter && !shifterOn) { shifter.connect(gainNode); shifterOn = true; } }   // engine hooked up once; ensureCtx resumes ac
-  else if (ac && ac.state === 'suspended') ac.resume();
+async function play() {
+  if (preparing) return;   // ignore transport taps while the file's audio is being prepared
+  if (bufferMode) {
+    ensureCtx();
+    iosKickStart();   // hold the iOS "playback" session so the engine plays through the silent switch
+    if (ac.state !== 'running') { try { await ac.resume(); } catch (e) {} }   // iOS: the context only resumes inside a user gesture
+    if (ac.state === 'running' && !shifter) {                                  // build the Signalsmith engine on a running context, once
+      shifter = await makeShifter(); shifterOn = false;
+      if (mediaDbg) mediaDbg.built = ac.state;
+      applyAll();                                                              // adopt the current transpose/pitch/speed
+    }
+    if (shifter && !shifterOn) { shifter.connect(gainNode); shifterOn = true; }
+    if (!shifter) return;   // still suspended (no gesture yet) — wait for a real play tap, then audio + video start together
+  } else if (ac && ac.state === 'suspended') ac.resume();
   v.play().catch(() => {});                 // muted video plays for the picture; audio is the engine
 }
 function pause() {
+  if (preparing) return;
   if (bufferMode && ac && ac.state === 'running') ac.suspend();   // freeze the audio thread (both engines stop cleanly)
+  iosKickStop();
   v.pause();
 }
 function setPlayUI(p) { $('play').innerHTML = p ? ICON_PAUSE : ICON_PLAY; }
@@ -713,7 +768,14 @@ function applyPitch() { if (bufferMode && shifter) shifter.pitchSemitones = tota
 function applyVol() { if (gainNode) gainNode.gain.value = muted ? 0 : volume; else v.volume = muted ? 0 : volume; }
 function setPitchEnabled(en) { $("trans").disabled = !en; $("pitch").disabled = !en; }
 function updateMuteUI() { const b = $('muteBtn'); b.innerHTML = (muted || volume === 0) ? ICON_MUTE : ICON_VOL; b.classList.toggle('muted', muted); }
-function setEngine() { const el = $("engine"); if (!el) return; el.textContent = (engineState && engineState.err) ? " · " + t("engine_native", { err: engineState.err }) : ""; }
+function setEngine() {
+  const el = $("engine"); if (!el) return;
+  if (engineState && engineState.preparing) {
+    el.textContent = " · " + t("preparing") + (engineState.capture && engineState.pct != null ? " " + engineState.pct + "%" : "");
+  } else if (engineState && engineState.err) {
+    el.textContent = " · " + t("engine_native", { err: engineState.err });
+  } else { el.textContent = ""; }
+}
 
 /* =========================================================================
    STATE + PERSISTENCE
@@ -800,6 +862,87 @@ function applySession() {
   loopOn = !!cur.loopOn; sections = cur.sections || []; activeSec = null;
   applyAll(); renderSections(); updateAB(); persist();
 }
+/* ---------- getting a file's audio into `buffer` (three ways, all → an AudioBuffer) ----------
+   1. decodeAudioData — audio files and containers the browser can demux itself.
+   2. demux + WebCodecs (mov-audio.js) — pulls AAC out of an .mp4/.mov the browser can PLAY
+      but won't decode (iPhone .mov on Safari). Fast: a multi-minute clip in well under a second.
+   3. live capture (capture-worklet.js) — universal fallback for older browsers / odd containers:
+      play the file through once and record the PCM. Slow (1x), rarely reached.
+   All three yield PCM at the context sample rate; the existing Signalsmith buffer engine then
+   takes over unchanged (transpose, hi-fi slow-down, A-B loops, and the video slaved to it). */
+const isVideoFile = (blob, name) => (blob.type || '').startsWith('video/') || /\.(mov|qt|mp4|m4v|avi|mkv|webm|3gp)$/i.test(name || '');
+
+function decodeAudioDataCompat(arr) {   // arr is consumed by the decoder; pass a copy if you still need the bytes
+  return new Promise((res, rej) => {
+    let p; try { p = ac.decodeAudioData(arr, res, rej); } catch (e) { return rej(e); }
+    if (p && typeof p.then === 'function') p.then(res, rej);
+  });
+}
+
+async function pcmToBuffer(channels, srcRate) {   // Float32[] → AudioBuffer at the context rate (resample if needed)
+  ensureCtx();
+  const n = channels[0].length;
+  if (srcRate === ac.sampleRate) {
+    const b = ac.createBuffer(channels.length, n, srcRate);
+    for (let c = 0; c < channels.length; c++) b.copyToChannel(channels[c], c);
+    return b;
+  }
+  const off = new OfflineAudioContext(channels.length, Math.ceil(n * ac.sampleRate / srcRate), ac.sampleRate);
+  const tmp = off.createBuffer(channels.length, n, srcRate);
+  for (let c = 0; c < channels.length; c++) tmp.copyToChannel(channels[c], c);
+  const s = off.createBufferSource(); s.buffer = tmp; s.connect(off.destination); s.start();
+  return off.startRendering();
+}
+
+// decodeAudioData, then demux+WebCodecs (ordered by type so we don't waste a big decode on iOS video).
+// Returns { buffer, how } or null (null → caller tries capture, then native).
+async function bufferFromFile(blob, name) {
+  ensureCtx();
+  const arr = await blob.arrayBuffer();
+  const order = isVideoFile(blob, name) ? ['demux', 'decode'] : ['decode', 'demux'];
+  for (const how of order) {
+    try {
+      if (how === 'decode') {
+        const b = await decodeAudioDataCompat(arr.slice(0));   // slice: the decoder takes ownership of the bytes
+        if (b) return { buffer: b, how: 'decode' };
+      } else {
+        const mod = await import('./mov-audio.js');
+        const pcm = await mod.decodeMovAudio(arr, {});
+        return { buffer: await pcmToBuffer(pcm.channels, pcm.sampleRate), how: 'demux' };
+      }
+    } catch (e) { if (mediaDbg) mediaDbg[how] = ((e && e.name) || e) + ''; }
+  }
+  return null;
+}
+
+// Fallback: record the file's audio by playing it through the graph once. Returns AudioBuffer.
+let _mediaSrc = null, _recLoaded = false;
+async function captureToBuffer(onProgress) {
+  ensureCtx();
+  if (ac.state !== 'running') { try { await ac.resume(); } catch (e) {} }
+  if (!_recLoaded) { await ac.audioWorklet.addModule('capture-worklet.js'); _recLoaded = true; }
+  if (!_mediaSrc) _mediaSrc = ac.createMediaElementSource(v);   // once-per-element, cached
+  const src = _mediaSrc;
+  const rec = new AudioWorkletNode(ac, 'etude-recorder', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [2] });
+  const segs = []; let total = 0, flushing = false, resolveFlush;
+  const flushed = new Promise(r => resolveFlush = r);
+  rec.port.onmessage = (e) => { if (e.data.len) { segs.push(e.data); total += e.data.len; } if (flushing) resolveFlush(); };
+  try { src.disconnect(); } catch (e) {}
+  src.connect(rec); rec.connect(ac.destination);
+  v.muted = false; v.playbackRate = 1;
+  try { v.currentTime = 0; } catch (e) {}
+  const onTime = () => { if (onProgress && v.duration) onProgress(v.currentTime / v.duration); };
+  v.addEventListener('timeupdate', onTime);
+  await v.play();
+  await new Promise(r => { const d = () => { v.removeEventListener('ended', d); r(); }; v.addEventListener('ended', d); });
+  v.removeEventListener('timeupdate', onTime);
+  flushing = true; rec.port.postMessage('flush'); await flushed;
+  try { src.disconnect(rec); } catch (e) {} try { rec.disconnect(); } catch (e) {}
+  const L = new Float32Array(total), R = new Float32Array(total); let o = 0;
+  for (const s of segs) { L.set(new Float32Array(s.L), o); R.set(new Float32Array(s.R), o); o += s.len; }
+  return pcmToBuffer([L, R], ac.sampleRate);
+}
+
 async function openMedia(blob, id, name, size, sessionData) {
   curBlob = blob;
   v.src = URL.createObjectURL(blob);
@@ -809,33 +952,44 @@ async function openMedia(blob, id, name, size, sessionData) {
   $('audioName').textContent = name;
   const audioHint = (blob.type || '').startsWith('audio/') || /\.(wav|mp3|m4a|aac|ogg|oga|flac|opus|aif|aiff|wma)$/i.test(name || '');
   $('vwrap').classList.toggle('audio', audioHint);   // early guess (type OR extension); confirmed on loadedmetadata
+  mediaDbg = { type: (blob.type || '(empty)'), size: size, ext: (String(name).match(/\.[^.\/]+$/) || ['(none)'])[0], decode: 'pending' };
 
-  // Decode the audio for the engine (tempo+pitch together). Fall back to native if it won't decode.
+  // Get the audio into `buffer` for the engine. Fall back to native (transpose off) only if all fail.
   bufferMode = false; buffer = null;
   if (shifter) { try { shifter.disconnect(); } catch (e) {} shifter = null; }
-  try {
-    ensureCtx();
-    const arr = await blob.arrayBuffer();
-    buffer = await new Promise((res, rej) => {           // handle BOTH promise & old callback forms (iOS Safari)
-      let p;
-      try { p = ac.decodeAudioData(arr, res, rej); } catch (err) { return rej(err); }
-      if (p && typeof p.then === 'function') p.then(res, rej);
-    });
-    if (!buffer) throw new Error('empty buffer');
-    if (shifter && shifter._node) { try { shifter.disconnect(); } catch (e) {} }
-    if (ac.state !== 'running') { try { await ac.resume(); } catch (e) {} }   // engine WASM must init on a running context
-    shifter = await makeShifter(); shifterOn = false;     // play() will hook it up
+  shifterOn = false;
+  ensureCtx();
+  setPitchEnabled(false);
+  preparing = true; engineState = { preparing: true }; setEngine();
+  showPlayer(); updateSaveUI();
+
+  let got = null;
+  try { got = await bufferFromFile(blob, name); } catch (e) {}
+  if (!got && isVideoFile(blob, name)) {   // last resort: capture by playing the file through once
+    try {
+      engineState = { preparing: true, capture: true, pct: 0 }; setEngine();
+      const b = await captureToBuffer(f => { engineState = { preparing: true, capture: true, pct: Math.round(f * 100) }; setEngine(); });
+      got = { buffer: b, how: 'capture' };
+    } catch (e) { if (mediaDbg) mediaDbg.capture = ((e && e.name) || e) + ''; }
+  }
+
+  preparing = false;
+  if (got) {
+    buffer = got.buffer;
     bufferMode = true; v.muted = true;                   // audio from engine; video muted, visual only
+    if (shifter) { try { shifter.disconnect(); } catch (e) {} }
+    shifter = null; shifterOn = false;                   // built lazily in play() on a RUNNING context (iOS needs the play-tap gesture)
     engineState = { ready: true };
-  } catch (e) {
-    bufferMode = false; v.muted = false;
-    engineState = { err: (e && e.name) || "decode failed" };
-    console.warn('Etude: decodeAudioData failed →', e);
+    if (mediaDbg) mediaDbg.decode = 'ok (' + got.how + ')';
+  } else {
+    bufferMode = false; v.muted = false;                 // native playback; transpose unavailable for this file
+    engineState = { err: "decode failed" };
+    if (mediaDbg) mediaDbg.decode = 'FAIL (native fallback)';
   }
   setPitchEnabled(bufferMode); setEngine();
-  applySession();     // applyAll → applyPitch/applySpeed onto the shifter
-  showPlayer();
-  play();
+  applySession();     // sets the sliders; the engine adopts them when play() builds it
+  try { v.pause(); } catch (e) {}
+  setPlayUI(false);   // don't autoplay: the first Play tap is the user gesture iOS needs to route the engine's audio
   updateSaveUI();
 }
 
@@ -924,8 +1078,9 @@ $('fsBtn').onclick = () => {
 v.onplay = () => { setPlayUI(true); $('vwrap').classList.add('playing'); };
 v.onpause = () => { setPlayUI(false); $('vwrap').classList.remove('playing'); if (!bufferMode && ac && ac.state === 'running') ac.suspend(); };
 v.addEventListener('loadedmetadata', () => { if (cur) cur.dur = v.duration; $('vwrap').classList.toggle('audio', !v.videoWidth); updateAB(); });
-let lastT = 0, frameN = 0;
+let lastT = 0, frameN = 0, endStopped = false;
 function tick() {
+  if (preparing) { requestAnimationFrame(tick); return; }   // hold off looping/sync while audio is being prepared
   if (hasMedia()) {
     const t = pTime();
     // Loop: jump back the instant we reach B. Guard against re-firing during the seek.
@@ -940,6 +1095,10 @@ function tick() {
     if (bufferMode && !pPaused() && !v.seeking && Math.abs(v.currentTime - t) > 0.3) {
       try { v.currentTime = t; } catch (e) {}
     }
+    // stop cleanly at the end of a non-looping clip so the engine doesn't free-run past the buffer
+    if (bufferMode && !loopOn && shifterOn && pDur() && t >= pDur() - 0.03) {
+      if (!endStopped) { endStopped = true; pause(); pSeek(0); setPlayUI(false); }
+    } else { endStopped = false; }
     if ((frameN++ & 3) === 0) {   // repaint the bar/time only ~15×/s to spare the decoder
       $('played').style.width = pct(t) + '%';
       $('time').textContent = fmt(t) + ' / ' + fmt(pDur());
@@ -1247,9 +1406,16 @@ if (location.search.includes('debug')) {
   dbg.style.cssText = 'position:fixed;bottom:8px;left:8px;z-index:9999;font:11px/1.5 monospace;background:rgba(0,0,0,.82);color:#5f5;padding:7px 9px;border-radius:7px;white-space:pre;pointer-events:none';
   document.body.appendChild(dbg);
   setInterval(() => {
-    dbg.textContent = 'ac: ' + (ac ? ac.state : 'none') + '\nbufferMode: ' + bufferMode + '  shifterOn: ' + shifterOn +
+    let rms = 0;
+    if (_dbgAn) { const a = new Float32Array(_dbgAn.fftSize); _dbgAn.getFloatTimeDomainData(a); let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * a[i]; rms = Math.sqrt(s / a.length); }
+    dbg.textContent = 'ac: ' + (ac ? ac.state : 'none') + '  built@' + (mediaDbg && mediaDbg.built || '-') +
+      '\nbufferMode: ' + bufferMode + '  shifterOn: ' + shifterOn +
       '\nshifter: ' + (shifter ? 'yes' : 'no') + '  v.paused: ' + v.paused +
-      '\npTime: ' + (pTime()).toFixed(2) + ' / ' + (pDur()).toFixed(2);
+      '\ngain: ' + (gainNode ? gainNode.gain.value.toFixed(2) : '-') + '  muted:' + muted + '  vol:' + (+volume).toFixed(2) +
+      '\nOUT RMS: ' + rms.toFixed(4) + (rms > 0.0008 ? ' ▶ SIGNAL' : ' — silent') +
+      '\npTime: ' + (pTime()).toFixed(2) + ' / ' + (pDur()).toFixed(2) +
+      (mediaDbg ? '\nfile: ' + mediaDbg.type + ' ' + mediaDbg.ext + ' ' + Math.round((mediaDbg.size || 0) / 1024) + 'KB' +
+        '\ndecode: ' + mediaDbg.decode : '');
   }, 150);
 }
 
