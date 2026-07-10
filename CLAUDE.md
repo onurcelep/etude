@@ -77,6 +77,7 @@ Repeatable flows, available locally and (where they don't need a browser) to `@c
 /looper/signalsmith-stretch.mjs   vendored Signalsmith Stretch (MIT), the audio engine
 /shared/theme.css    shared light/dark design tokens
 extensions/looper/          the browser add-on (MV3, Firefox + Chrome); NOT served on the website
+/docs/               extension.md (deep extension reference) + memory/ (agent memory: MEMORY.md index + fact files)
 /.github/workflows/  deploy-pages.yml (site) + etude-looper-ext-release.yml (store zips on tag) + claude.yml, claude-code-review.yml (@claude AI, PR-only)
 ```
 
@@ -108,28 +109,11 @@ New tools go in their own top-level folder (e.g. `/metronome/`), as a single sel
 
 ### Service worker cache
 
-`looper/sw.js` uses a named cache (currently `etude-looper-v9`). Navigation is network-first (updates show when online), static assets are cache-first. **When you change any cached asset, bump the `CACHE` constant** or clients keep serving stale files. The activate step deletes all other caches. The service worker is not registered on `localhost`/`file:` (dev), so local edits always show; it registers only on the deployed origin. On the iPad, reload twice or use a Private tab to get past an old cache.
+**When you change any cached Looper asset, bump the `CACHE` constant in `looper/sw.js`** or clients keep serving stale files. Cache strategy and device quirks: `docs/memory/sw-cache.md`.
 
 ### Extension (browser add-on)
 
-`extensions/looper/` is a Manifest V3 add-on (Firefox 128+ and Chrome) that brings the Looper's Signalsmith engine to online video (transpose, fine pitch, pitch-preserving speed, A-B loops on YouTube). Self-contained vanilla JS, no build step, same golden rules as the site. Shares design lineage with the web app, not code.
-
-**Two deploy targets, decoupled.** The website deploys on `git push` (Pages). The extension does NOT: `extensions/looper/` is excluded from the Pages artifact (see `deploy-pages.yml`), and the stores only ship what you upload. Push extension code freely; users get nothing until you submit a store build. Releasing is a separate, deliberate act.
-
-**Cross-browser background.** The committed `manifest.json` keeps BOTH `background.service_worker` and `background.scripts` (the documented pattern: Chrome uses the worker and ignores `scripts` with a harmless warning; Firefox uses `scripts`). One unpacked folder loads in either browser for dev. `pack.sh` emits clean per-browser store zips (Chrome: `service_worker` only, no gecko block; Firefox: `scripts` only) so published builds are warning-free.
-
-**Release workflow:**
-1. Land extension changes on `main` the normal way (branch, PR, merge). Merging does not release the extension.
-2. `cd extensions/looper && ./release.sh [patch|minor|major]` bumps `manifest.json` and builds `dist/etude-looper-{chrome,firefox}-<version>.zip`. Stores reject an upload whose version is not higher than the last, so always bump.
-3. Verify both browsers from the unpacked folder (`extensions/looper/TESTING.md`); `web-ext lint` the Firefox zip for AMO.
-4. Commit the bump, then `git tag etude-looper-ext-v<version>` and `git push --tags`. The tag push triggers `etude-looper-ext-release.yml`, which rebuilds the zips and attaches them to a GitHub Release (it does not upload to the stores).
-5. Download the zips from the release; upload `etude-looper-chrome-*` to the Chrome Web Store, `etude-looper-firefox-*` to Firefox AMO. Stores review, then auto-update installed users.
-
-**Versioning + tags.** Extension SemVer lives in `manifest.json`, its own train (unrelated to the SW cache number or the web). Tag prefixes: `etude-v*` for website milestones, `etude-looper-ext-v*` for extension releases. No true store rollback; to undo, publish a higher version (Chrome staged rollout % helps for risky ones).
-
-**The one coupling:** once published, put the two store URLs into `EXT_STORES` in `looper/index.html` and push the web, which flips on the Looper's "get the extension" cross-link (desktop + browser-detected, hidden until the URLs exist).
-
-**Internals:** four content scripts in one isolated world. `engine.js` (only Web Audio; live Signalsmith via `createMediaElementSource`; worklet loaded from an extension URL because YouTube CSP blocks blob worklets), `panel.js` (pure UI, EN/TR/DE with a live selector defaulting to the page language), `loop.js` (A-B + per-video storage), `content.js` (orchestrator, SPA-nav, speed, toolbar toggle via `background.js`; guards `chrome.*` against post-reload "context invalidated"). Dev scripts: `gen-worklet.mjs`, `pack.sh`, `pack-source.sh`, `release.sh`. Local-only `extensions/looper/{SPEC,PLAN,TESTING}.md` and `dist/` are git-excluded.
+`extensions/looper/` is a Manifest V3 add-on (Firefox 128+ and Chrome) that brings the Looper's Signalsmith engine to online video. Same golden rules as the site (vanilla JS, no build step). **It ships on its own deliberate release train: merging to `main` never releases it** — users get nothing until a `manifest.json` version bump plus an `etude-looper-ext-v*` tag, followed by a manual store upload. Internals, cross-browser manifest pattern, release procedure, and versioning/tag rules: `docs/extension.md` (`/ship-ext` automates the mechanical release steps).
 
 ### How to work here
 
@@ -138,7 +122,7 @@ New tools go in their own top-level folder (e.g. `/metronome/`), as a single sel
 - **Browser automation is available (Chrome DevTools MCP, user-scoped, so it loads in every session here).** Claude can drive Chrome itself: navigate, screenshot the UI, read the console, inspect the DOM and computed styles, check responsive sizes. Use it to close the verify loop yourself instead of asking the user to look. Typical flow: serve over http (`python3 -m http.server`, default port 8000), point the MCP at `http://localhost:8000/looper/` (append `?debug` for the live AudioContext/position readout), then screenshot and iterate. Note the audio engine needs a user gesture to start, so a bare page load stays silent until you drive a click.
 - **For the `extension/`:** load it unpacked in the driven Chrome (`chrome://extensions` with Developer mode, or launch Chrome with `--load-extension=./extensions/looper`) to screenshot and check the panel and content-script UI the same way.
 - **Review before merge:** open a PR (the auto Opus review runs) and run `/code-review` on the diff for anything nontrivial; a human merges. Merging the PR is the deploy.
-- **Deploy is via GitHub Actions** (`.github/workflows/`), not the legacy branch builder (which once got stuck and jammed the queue). A merge to `main` runs the workflow. If a run shows `Deployment failed, try again later` (a transient GitHub Pages error, not a code problem), just re-run it: `gh workflow run "Deploy to GitHub Pages" --ref main`. After merging, verify the live file actually changed (`curl` a marker) since the Pages CDN can lag.
+- **Deploy is via GitHub Actions** (`.github/workflows/`): a merge to `main` runs the workflow. Known failure modes (transient Pages errors, CDN lag, the legacy branch builder): `docs/memory/pages-deploy-gotchas.md`. Verify after merge with `/deploy-check`.
 - **Scale the tooling to the task.** This is a solo, ~1200-line, single-file-per-tool project. Heavy multi-agent orchestration, worktree parallelism, and spec frameworks are overkill for edits to an existing tool. They only start to pay off when building a genuinely new independent tool (metronome, tuner): a short spec first, then build it in isolation.
 
 ### When to use specs, subagents, or workflows
