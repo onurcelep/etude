@@ -5,8 +5,8 @@ runs dying in ~2s while showing green checks).
 
 **1. The action can mask total failure behind a green check.** A run whose
 result JSON shows `"is_error": true`, `num_turns: 1`, `total_cost_usd: 0`
-did no work at all, whatever the check color says (upstream:
-anthropics/claude-code-action#1495). Symptoms: an issue answered only by
+did no work at all, whatever the check color says (known upstream
+action behavior). Symptoms: an issue answered only by
 "I'll analyze this and get back to you", or a green review check with no
 review comment. The error text is hidden by default; add
 `show_full_output: true` to the workflow (must be merged to main to take
