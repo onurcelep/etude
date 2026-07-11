@@ -1481,7 +1481,7 @@ $('langSel').onchange = () => setLang($('langSel').value);
 // Cross-link to the browser extension for online video. Desktop only (extensions
 // cannot run on iPad or phones, where this PWA is the tool). Store URLs are filled
 // in when the extension is published; empty means the link stays hidden.
-const EXT_STORES = { chrome: 'https://chromewebstore.google.com/detail/okkodbklbbcakcioebkfhonilgmdcmcd', firefox: '' };
+const EXT_STORES = { chrome: 'https://chromewebstore.google.com/detail/okkodbklbbcakcioebkfhonilgmdcmcd', firefox: 'https://addons.mozilla.org/en-US/firefox/addon/etude-looper/' };
 (function mountGetExt() {
   const ua = navigator.userAgent;
   const mobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.userAgentData && navigator.userAgentData.mobile);
