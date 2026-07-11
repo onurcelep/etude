@@ -18,7 +18,7 @@ Open a local video or audio file, loop a passage, slow it down, and change the k
 - **Audio or video:** the file's audio is decoded and played through [Signalsmith Stretch](https://github.com/Signalsmith-Audio/signalsmith-stretch), so transpose and slow-down work together smoothly; the video follows, muted.
 - **Sessions:** save a file with its loops and settings, then reopen it instantly (stored locally via IndexedDB).
 - **Light / dark**, **English / Türkçe / Deutsch** (auto-detected), and an **installable PWA** that works offline.
-- **Online video, too:** a companion [browser extension](https://chromewebstore.google.com/detail/okkodbklbbcakcioebkfhonilgmdcmcd) brings the same loop, slow-down, and transpose to YouTube and other sites (desktop Chrome, Edge, Opera).
+- **Online video, too:** a companion [browser extension](https://chromewebstore.google.com/detail/okkodbklbbcakcioebkfhonilgmdcmcd) (also on [Firefox](https://addons.mozilla.org/en-US/firefox/addon/etude-looper/)) brings the same loop, slow-down, and transpose to YouTube and other sites (desktop Chrome, Edge, Opera, Firefox).
 
 ### Coming soon
 
