@@ -32,21 +32,13 @@ jobs:
 
       - name: Run Claude Code
         id: claude
-        # Temporarily pinned to the 2.1.206 build: the @v1 tag moved to a
-        # build installing Claude Code 2.1.207, which errors instantly in CI
-        # (is_error, $0, green check) — anthropics/claude-code-action#1495.
-        # Restore @v1 once upstream ships a fixed build.
-        uses: anthropics/claude-code-action@536f2c32a39763739000b0e1ac69ca2647d97ce9
+        uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # TEMPORARY while diagnosing the instant is_error/$0 failures:
-          # surface the full SDK stream so the real API error is visible in
-          # the run log. Remove once CI is confirmed healthy.
-          show_full_output: true
           # Model policy: see the factory:model-routing skill. Sonnet for
           # responder work, turn-capped. Escalate per-issue by writing
           # "use opus" in the issue body if needed.
-          claude_args: '--model claude-sonnet-5 --max-turns 10'
+          claude_args: '--model claude-sonnet-5 --max-turns 30'
           # The Action does not load the repo's .claude/settings.json (it is
           # stripped from the runner's checkout), so plugins must be
           # self-loaded via these inputs rather than relying on settings.json.
