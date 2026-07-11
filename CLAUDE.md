@@ -9,8 +9,8 @@ belongs to this repo).
 ## Standard rules
 
 - **Every change ships via a short-lived branch and a PR; a human merges.
-  Nobody pushes `main` directly** (@claude runs `contents: read` and
-  cannot). Full discipline: `factory:release-flow` skill.
+  Nobody pushes `main` directly** (@claude pushes only `claude/` work
+  branches and opens PRs). Full discipline: `factory:release-flow` skill.
 - **Review before merge:** the auto PR review runs, and `/code-review` for
   anything nontrivial. What a merge to `main` triggers (deploy, a separate
   release train, or nothing) is per-repo, under `## Project`.
@@ -56,7 +56,7 @@ Currently one tool ships (the Looper). A metronome and a tuner are planned.
 One flow for everyone (see `factory:release-flow`): branch off `main`, open a PR, review, then a human merges. Nobody pushes `main` directly.
 
 - **Local (you + this CLI)** — work on a short-lived branch, verify in a real browser (the bugs are audio/DOM runtime; the review bot can't hear audio), push the branch, open a PR. The auto Opus review runs; `/code-review` yourself for anything nontrivial. Merge when green: merging the PR deploys the site.
-- **@claude (remote)** — tag it on an issue or PR for small, describable, or async tasks. It runs in CI, cannot push `main` (`contents: read`), and **opens a PR** you review, verify, and merge.
+- **@claude (remote)** — tag it on an issue or PR for small, describable, or async tasks. It runs in CI, pushes a `claude/` branch, and **opens a PR** you review, verify, and merge (never touching `main` itself).
 - Merging deploys the **site** only (path-scoped, see Golden rules). It never releases the extension.
 
 ### Slash commands (`.claude/commands/`)
