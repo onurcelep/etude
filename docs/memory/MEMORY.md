@@ -8,3 +8,4 @@ rules and conventions: `factory:repo-memory` skill.
 
 - [Looper service worker cache behavior](sw-cache.md) — touching any cached Looper asset: CACHE bump rule, strategy, device quirks
 - [GitHub Pages deploy gotchas](pages-deploy-gotchas.md) — deploy run failed or live site looks stale after a merge
+- [Claude Code action pinned to 2.1.206 build](ci-claude-action-pin.md) — @claude/review runs green but do nothing (instant is_error, $0): why the workflows pin the action SHA and when to unpin
