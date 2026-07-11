@@ -6,9 +6,9 @@
 @font-face{font-family:"Fraunces";font-style:italic;font-weight:100 900;font-display:swap;
   src:url("fonts/fraunces-italic.woff2") format("woff2")}
 :root{
-  --paper:#efeee7; --card:#faf9f5; --paper-2:#e7e5db;
-  --ink:#17181c; --mut:#6f6e68; --faint:#a2a199;
-  --line:#dedcd2; --line-2:#cdcbbf;
+  --paper:#f3efe4; --card:#fbf8f0; --paper-2:#ebe5d6;
+  --ink:#211f1a; --mut:#756f61; --faint:#a9a290;
+  --line:#e3ddce; --line-2:#d5ccb8;
   --accent:#b3372b; --accent-2:#8f2b21; --accent-soft:rgba(179,55,43,.10); --red:#b3372b;
   --r:11px; --r-sm:7px;
   --mono:"SFMono-Regular",ui-monospace,"DejaVu Sans Mono",Menlo,Consolas,"Courier New",monospace;
@@ -16,8 +16,8 @@
   --display:"Fraunces","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
 }
 [data-theme="dark"]{
-  --paper:#121114; --card:#1a191e; --paper-2:#24222b;
-  --ink:#eeecef; --mut:#918e98; --faint:#6a6772;
+  --paper:#141210; --card:#1c1917; --paper-2:#282320;
+  --ink:#f0ece4; --mut:#968f82; --faint:#6d675d;
   --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.18);
   --accent:#e6a94a; --accent-2:#f0b95e; --accent-soft:rgba(230,169,74,.15); --red:#e0664f;
 }
