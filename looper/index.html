@@ -1461,7 +1461,7 @@ const ICON_SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" st
 const ICON_MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8 8 0 0 1 9.4 4 7 7 0 1 0 20 14.6z"/></svg>';
 function applyTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
-  const tc = $('themeColor'); if (tc) tc.setAttribute('content', t === 'dark' ? '#121114' : '#efeee7');
+  const tc = $('themeColor'); if (tc) tc.setAttribute('content', t === 'dark' ? '#141210' : '#f3efe4');
   const b = $('themeBtn'); if (b) { b.innerHTML = t === 'dark' ? ICON_SUN : ICON_MOON; b.title = t === 'dark' ? 'Switch to light' : 'Switch to dark'; }
 }
 $('themeBtn').onclick = () => {
