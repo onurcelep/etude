@@ -32,7 +32,7 @@ belongs to this repo).
 
 ### What this is
 
-Etude is a small suite of private, offline, browser-based tools for practicing musicians. No accounts, no uploads, no tracking. Everything runs in the browser. Live at https://onurcelep.github.io/etude/ (local dir `~/code/etude`, GitHub remote `etude`).
+Etude is a small suite of private, offline, browser-based tools for practicing musicians. No accounts, no uploads. Everything runs in the browser. The site uses anonymous, cookie-free page-view analytics (Cloudflare Web Analytics) — see `privacy.html`. Live at https://onurcelep.github.io/etude/ (local dir `~/code/etude`, GitHub remote `etude`).
 
 Currently one tool ships (the Looper). A metronome and a tuner are planned.
 

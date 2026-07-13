@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Privacy · Etude</title>
-<meta name="description" content="Etude's privacy policy. Etude collects no personal data. Every tool and the browser extension run entirely in your browser." />
+<meta name="description" content="Etude's privacy policy. Etude collects no personal data beyond anonymous page-view analytics. Every tool and the browser extension run entirely in your browser." />
 <meta name="theme-color" content="#efeee7" id="themeColor" />
 <link rel="icon" href="looper/icon-192.png" />
 <script>/* set theme before paint to avoid a flash */try{var _t=localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
@@ -63,7 +63,7 @@
     <h1>Privacy Policy</h1>
     <p class="updated">Last updated: 7 July 2026</p>
 
-    <p class="lede">Etude collects <b>no personal data</b>. Every tool on this site, and the Etude browser extension, run entirely in your browser. There are no accounts, no servers, no tracking, and no analytics.</p>
+    <p class="lede">Etude collects <b>no personal data</b>. Every tool on this site, and the Etude browser extension, run entirely in your browser. There are no accounts and no servers. The website uses anonymous, cookie-free analytics to count visits; it cannot identify you and never sees what you do inside a tool.</p>
 
     <div class="callout">
       <p>In one line: nothing you do in Etude is sent anywhere. Your files, your videos, and your settings never leave your device.</p>
@@ -73,14 +73,15 @@
     <p>Etude is a small suite of offline, browser-based tools for practicing musicians, including the Looper (a web app) and the Etude Looper browser extension for online video. This policy covers the website at onurcelep.github.io/etude and the browser extension.</p>
 
     <h2>Data we collect</h2>
-    <p><strong>None.</strong> Etude does not collect, transmit, sell, or share any personal information. Specifically, it does not:</p>
+    <p><strong>Anonymous page views only.</strong> Etude does not collect, transmit, sell, or share any personal information. Specifically, it does not:</p>
     <ul>
       <li>require an account or a login;</li>
       <li>send your audio, video, or files to any server (all processing happens locally in your browser);</li>
-      <li>use analytics, tracking pixels, advertising, or third-party trackers;</li>
+      <li>use cookies, fingerprinting, advertising, or third-party trackers;</li>
       <li>read or store your browsing history;</li>
-      <li>collect clicks, keystrokes, or any behavioral data.</li>
+      <li>collect clicks, keystrokes, or any file or behavioral data.</li>
     </ul>
+    <p>The website uses <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noopener">Cloudflare Web Analytics</a>, a privacy-focused analytics service, to count page visits. It does not use cookies and cannot identify you individually; it only reports aggregate numbers, like how many people visited a page, which we use to see whether Etude is worth improving.</p>
 
     <h2>Data stored on your device</h2>
     <p>To remember your preferences, Etude saves a few things <strong>locally on your device only</strong>, using your browser's own storage (localStorage and IndexedDB). This data never leaves your browser and is not accessible to us or anyone else:</p>
@@ -146,5 +147,6 @@
     setTimeout(function(){ els.forEach(function(e){ e.classList.add('in'); }); }, 1600); // safety net
   })();
 </script>
+<!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "f3cb1a77c26d4ceea424df19198cc77f"}'></script><!-- End Cloudflare Web Analytics -->
 </body>
 </html>
