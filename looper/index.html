@@ -1278,7 +1278,7 @@ $('saveSection').onclick = () => {
   A = null; B = null; loopOn = false; activeSec = null;   // clear the working A–B for the next loop (matches the extension)
   renderSections(); updateAB(); persist();
 };
-function activateSection(s) { A = s.start; B = s.end; loopOn = true; activeSec = s.id; pSeek(A); play(); updateAB(); persist(); }
+function activateSection(s) { A = s.start; B = s.end; loopOn = true; activeSec = s.id; pSeek(A); play(); updateAB(); renderSections(); persist(); }
 
 function renderSections() {
   const box = $('sections'); box.innerHTML = '';
