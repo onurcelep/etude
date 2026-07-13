@@ -105,6 +105,7 @@ New tools go in their own top-level folder (e.g. `/metronome/`), as a single sel
 - **Resume the AudioContext before creating the engine.** The worklet's WASM only inits on a running context; build it while suspended (e.g. right after a pause) and it never starts. The app unlocks/resumes the context on the first user gesture.
 - **Pause/resume = suspend/resume the whole AudioContext**, not disconnecting the node — a disconnected worklet keeps advancing, so disconnecting does not pause it.
 - **Position:** read from the engine (`inputTime`) while playing; hold a saved value while paused/suspended so a seek still updates the timeline immediately.
+- **A seek issued before the engine exists is silently dropped for audio.** `pSeek()` can only move the Signalsmith node's position if `shifter` already exists; before that it only moves the muted video's `currentTime`. So the engine must adopt `v.currentTime` (via the `percentagePlayed` setter) at the moment it's built in `play()` — otherwise the first activation of a saved loop/section after loading a session (before Play has ever been pressed) starts the engine from position 0 instead of the loop's start.
 - **`decodeAudioData`:** support both the promise and old callback forms (iOS Safari), and match audio files by extension too (`.wav` etc. can report an empty MIME type).
 - Append **`?debug`** to the Looper URL for a live readout of AudioContext state, buffer mode, and position.
 
