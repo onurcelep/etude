@@ -1,6 +1,6 @@
 # 𝄆 Etude 𝄇
 
-**Tools for practicing musicians.** A small suite of private, offline, browser-based tools. No accounts, no tracking; everything runs right in your browser.
+**Tools for practicing musicians.** A small suite of private, offline, browser-based tools. No accounts, no uploads; everything runs right in your browser.
 
 > *étude*: a piece written to practice a skill. That's the whole idea.
 
