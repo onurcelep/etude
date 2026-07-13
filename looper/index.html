@@ -263,7 +263,7 @@
   .secsbar{position:absolute;right:1px;width:6px;border-radius:6px;background:var(--line-2);cursor:grab;display:none;touch-action:none;transition:background .12s}
   .secsbar:hover,.secsbar.drag{background:var(--faint)}
   .secsbar.drag{cursor:grabbing}
-  .sec{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line-2);border-radius:var(--r-sm)}
+  .sec{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line-2);border-radius:var(--r-sm);cursor:pointer}
   .sec.active{border-color:var(--accent);background:var(--accent-soft)}
   .sec input.nm{flex:1;min-width:60px;border:none;background:transparent;font:inherit;color:var(--ink)}
   .sec input.nm:focus{outline:none}
@@ -800,6 +800,7 @@ async function play() {
     if (ac.state !== 'running') { try { await ac.resume(); } catch (e) {} }   // iOS: the context only resumes inside a user gesture
     if (ac.state === 'running' && !shifter) {                                  // build the Signalsmith engine on a running context, once
       shifter = await makeShifter(); shifterOn = false;
+      if (v.currentTime) shifter.percentagePlayed = shifter.duration ? (v.currentTime / shifter.duration) : 0;   // adopt any seek requested before the engine existed (e.g. clicking a saved loop right after loading a session)
       if (mediaDbg) mediaDbg.built = ac.state;
       applyAll();                                                              // adopt the current transpose/pitch/speed
     }
@@ -1296,10 +1297,12 @@ function renderSections() {
       '<button class="icon" title="Delete">&#128465;</button>';
     const [playB, nm, , updB, delB] = row.children;
     nm.value = s.name;
-    playB.onclick = () => activateSection(s);
+    row.onclick = () => activateSection(s);   // the whole row is the click target, not just the tiny play icon
+    playB.onclick = (e) => { e.stopPropagation(); activateSection(s); };
+    nm.onclick = (e) => e.stopPropagation();
     nm.onchange = () => { s.name = nm.value; drawMarks(); persist(); };   // keep the timeline label in sync with the name
-    updB.onclick = () => { s.start = A ?? s.start; s.end = B ?? s.end; renderSections(); persist(); };
-    delB.onclick = () => { sections = sections.filter(x => x.id !== s.id); if (activeSec === s.id) activeSec = null; renderSections(); persist(); };
+    updB.onclick = (e) => { e.stopPropagation(); s.start = A ?? s.start; s.end = B ?? s.end; renderSections(); persist(); };
+    delB.onclick = (e) => { e.stopPropagation(); sections = sections.filter(x => x.id !== s.id); if (activeSec === s.id) activeSec = null; renderSections(); persist(); };
     box.appendChild(row);
   });
   drawMarks();
