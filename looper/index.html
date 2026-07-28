@@ -842,7 +842,12 @@ function updateMuteUI() { const b = $('muteBtn'); b.innerHTML = (muted || volume
 function setEngine() {
   const el = $("engine"); if (!el) return;
   if (engineState && engineState.preparing) {
-    el.textContent = " · " + t("preparing") + (engineState.capture && engineState.pct != null ? " " + engineState.pct + "%" : "");
+    const msg = t("preparing") + (engineState.capture && engineState.pct != null ? " " + engineState.pct + "%" : "");
+    el.textContent = " · " + msg;
+    // mirror into the big time readout: the footer note alone is invisible, and while
+    // preparing the transport ignores taps — the user must see WHY (tick repaints the
+    // readout again as soon as preparing ends)
+    const tm = $("time"); if (tm) tm.innerHTML = '<span class="tot">' + msg + '</span>';
   } else if (engineState && engineState.err) {
     el.textContent = " · " + t("engine_native", { err: engineState.err });
   } else { el.textContent = ""; }
@@ -990,7 +995,17 @@ async function bufferFromFile(blob, name) {
 let _mediaSrc = null, _recLoaded = false;
 async function captureToBuffer(onProgress) {
   ensureCtx();
-  if (ac.state !== 'running') { try { await ac.resume(); } catch (e) {} }
+  // A capture pass needs a RUNNING context: the recorder worklet only processes audio while the
+  // context runs. If the user-activation window expired (slow decode attempts on a big file),
+  // resume() is refused — and in Firefox the refused promise never settles, it just waits for the
+  // next gesture — so race it against a timeout instead of awaiting it bare. Starting the pass
+  // anyway would play the whole video through with no sound, no recording, and no way out
+  // (transport taps are ignored while preparing). Bail to the native fallback instead.
+  // Must throw BEFORE createMediaElementSource reroutes the element's audio for good.
+  if (ac.state !== 'running') {
+    await Promise.race([ac.resume().catch(() => {}), new Promise(r => setTimeout(r, 800))]);
+    if (ac.state !== 'running') throw new Error('context-suspended');
+  }
   if (!_recLoaded) { await ac.audioWorklet.addModule('capture-worklet.js'); _recLoaded = true; }
   if (!_mediaSrc) _mediaSrc = ac.createMediaElementSource(v);   // once-per-element, cached
   const src = _mediaSrc;
@@ -1012,6 +1027,13 @@ async function captureToBuffer(onProgress) {
   const L = new Float32Array(total), R = new Float32Array(total); let o = 0;
   for (const s of segs) { L.set(new Float32Array(s.L), o); R.set(new Float32Array(s.R), o); o += s.len; }
   return pcmToBuffer([L, R], ac.sampleRate);
+}
+
+function captureHasSignal(buf) {   // sparse scan: any sample above the noise floor counts
+  if (!buf || !buf.length) return false;
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i += 997) if (Math.abs(d[i]) > 1e-4) return true;
+  return false;
 }
 
 async function openMedia(blob, id, name, size, sessionData) {
@@ -1041,6 +1063,9 @@ async function openMedia(blob, id, name, size, sessionData) {
     try {
       engineState = { preparing: true, capture: true, pct: 0 }; setEngine();
       const b = await captureToBuffer(f => { engineState = { preparing: true, capture: true, pct: Math.round(f * 100) }; setEngine(); });
+      // a capture that recorded only silence means the element couldn't decode the audio track
+      // (it played the picture and recorded nothing) — a silent engine is worse than native fallback
+      if (!captureHasSignal(b)) throw new Error('capture-silent');
       got = { buffer: b, how: 'capture' };
     } catch (e) { if (mediaDbg) mediaDbg.capture = ((e && e.name) || e) + ''; }
   }
@@ -1055,6 +1080,9 @@ async function openMedia(blob, id, name, size, sessionData) {
     if (mediaDbg) mediaDbg.decode = 'ok (' + got.how + ')';
   } else {
     bufferMode = false; v.muted = false;                 // native playback; transpose unavailable for this file
+    // a failed capture attempt leaves the element's audio rerouted into the graph
+    // (createMediaElementSource is permanent) — reconnect it or native playback is silent
+    if (_mediaSrc) { try { _mediaSrc.connect(gainNode); } catch (e) {} }
     engineState = { err: "decode failed" };
     if (mediaDbg) mediaDbg.decode = 'FAIL (native fallback)';
   }
