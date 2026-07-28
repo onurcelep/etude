@@ -33,6 +33,16 @@
   .tool.soon{opacity:.6;pointer-events:none}
   .tool.soon .badge{color:var(--mut);border-color:var(--line-2)}
 
+  .ext{margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;
+       padding:22px;border:1px solid var(--line);border-radius:var(--r);background:var(--card)}
+  .ext h3{margin:0 0 6px;font-size:17px;font-weight:600;font-family:var(--display)}
+  .ext p{margin:0;color:var(--mut);font-size:13.5px;line-height:1.6;max-width:52ch}
+  .ext-cta{display:flex;align-items:center;gap:14px}
+  .ext-cta .btn{white-space:nowrap}
+  .ext-alt{color:var(--mut);font-size:12.5px}
+  .ext-alt a{color:var(--mut);border-bottom:1px solid var(--line-2)}
+  .ext-alt a:hover{color:var(--accent);border-color:var(--accent)}
+
   footer{max-width:1000px;margin:0 auto;padding:30px 26px 60px;color:var(--faint);font-size:12.5px;line-height:1.8}
   footer a{color:var(--mut);border-bottom:1px solid var(--line-2)}
   footer a:hover{color:var(--accent);border-color:var(--accent)}
@@ -43,6 +53,8 @@
   .tool h3{font-family:var(--display)}
   [data-theme="dark"] .top{background:rgba(20,18,16,.82)}
   [data-theme="dark"] .tool{background:linear-gradient(180deg,#221f28,#191820);border-color:rgba(255,255,255,.07);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 14px 34px -24px #000}
+  [data-theme="dark"] .ext{background:linear-gradient(180deg,#221f28,#191820);border-color:rgba(255,255,255,.07);
     box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 14px 34px -24px #000}
   [data-theme="dark"] a.tool:hover{border-color:var(--accent)}
 
@@ -90,6 +102,17 @@
         <p>A chromatic tuner for your instrument, with adjustable reference pitch.</p>
       </div>
     </section>
+
+    <section class="ext reveal" style="--rd:480ms">
+      <div>
+        <h3>Looper for YouTube</h3>
+        <p>The browser extension brings the same loop, slow-down, and transpose to YouTube and other video sites. Free, open source, nothing uploaded.</p>
+      </div>
+      <div class="ext-cta">
+        <a class="btn primary" id="extInstall" href="https://chromewebstore.google.com/detail/okkodbklbbcakcioebkfhonilgmdcmcd" target="_blank" rel="noopener">Add to Chrome</a>
+        <span class="ext-alt" id="extAlt">also on <a href="https://addons.mozilla.org/firefox/addon/etude-looper/" target="_blank" rel="noopener">Firefox</a></span>
+      </div>
+    </section>
   </main>
 
   <footer>
@@ -113,6 +136,32 @@
     localStorage.setItem('etude.theme', next); applyTheme(next);
   };
   applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+
+  /* adaptive install button: Firefox installs the signed .xpi in place (AMO doorhanger),
+     Chromium browsers go to the Web Store, everything else gets plain store links */
+  (function(){
+    var CWS = 'https://chromewebstore.google.com/detail/okkodbklbbcakcioebkfhonilgmdcmcd';
+    var AMO = 'https://addons.mozilla.org/firefox/addon/etude-looper/';
+    var XPI = 'https://addons.mozilla.org/firefox/downloads/latest/etude-looper/latest.xpi';
+    var btn = $('extInstall'), alt = $('extAlt');
+    var ua = navigator.userAgent;
+    var mobile = /Android|iPhone|iPad|iPod/.test(ua) || (navigator.maxTouchPoints > 1 && /Mac/.test(ua)); /* iPadOS reports as Mac */
+    var firefox = /Firefox\//.test(ua), chromium = /Chrome\/|Chromium\//.test(ua);
+    function link(href, label){ return '<a href="' + href + '" target="_blank" rel="noopener">' + label + '</a>'; }
+    if (firefox && !mobile) {
+      btn.textContent = 'Add to Firefox';
+      btn.href = XPI;
+      btn.removeAttribute('target'); /* same-tab click is what pops Firefox's install prompt */
+      alt.innerHTML = 'also on ' + link(CWS, 'Chrome');
+    } else if (chromium && !mobile) {
+      if (/Edg\//.test(ua)) btn.textContent = 'Add to Edge';
+      else if (/OPR\//.test(ua)) btn.textContent = 'Add to Opera';
+      /* default markup already targets the Chrome Web Store */
+    } else {
+      btn.remove();
+      alt.innerHTML = 'for desktop browsers: ' + link(CWS, 'Chrome') + ' · ' + link(AMO, 'Firefox');
+    }
+  })();
 
   /* scroll-in reveals: add .in when an element scrolls into view (IO, once each) */
   (function(){
