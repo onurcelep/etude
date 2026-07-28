@@ -21,3 +21,21 @@ several terse single-letter globals. Two traps this has already caused:
 Related: the frame-stall "can't decode" heuristic in `tick()` must not treat
 seek stalls as decode failure — `seeking` restarts its watch, because every
 A-B loop jump issues a seek.
+
+## Audio capture / autoplay traps (Firefox-family, incl. Zen)
+
+- `AudioContext.resume()` refused for lack of user activation does NOT
+  reject in Firefox — the promise stays pending until the next gesture.
+  Never bare-await it outside a click handler; race it with a timeout and
+  check `ac.state` after.
+- Transient user activation from the file picker expires within seconds.
+  Slow decode attempts on a big file exhaust it, so anything downstream
+  needing a running context (the capture pass) must verify the state,
+  not assume the gesture still covers it.
+- `createMediaElementSource(v)` permanently reroutes the element's audio
+  into the graph. Any code path that creates it and then abandons the
+  graph must reconnect it (to the gain node), or native playback goes
+  silent with no error.
+- While `preparing` is true the transport swallows play/pause taps — any
+  state that can persist indefinitely under `preparing` is unrecoverable
+  by the user. Guard every await in the prepare chain.
