@@ -1209,7 +1209,14 @@ v.onpause = () => { setPlayUI(false); $('vwrap').classList.remove('playing'); if
 v.addEventListener('loadedmetadata', () => { if (cur) cur.dur = v.duration; $('vwrap').classList.toggle('audio', !v.videoWidth); updateAB(); });
 let lastT = 0, frameN = 0, endStopped = false;
 function tick() {
-  if (preparing) { requestAnimationFrame(tick); return; }   // hold off looping/sync while audio is being prepared
+  if (preparing) {   // hold off looping/sync while audio is being prepared
+    // during a capture pass the video audibly/visibly plays the file through — track it on the
+    // timeline (paint only; seeks and transport stay blocked so the recording isn't disturbed)
+    if (engineState && engineState.capture && v.duration) {
+      $('played').style.width = (v.currentTime / v.duration * 100) + '%';
+    }
+    requestAnimationFrame(tick); return;
+  }
   if (hasMedia()) {
     const tNow = pTime();   // NB: not `t` — that would shadow the i18n helper called below
     // Loop: jump back the instant we reach B. Guard against re-firing during the seek.
