@@ -86,7 +86,7 @@ New tools go in their own top-level folder (e.g. `/metronome/`), as a single sel
 
 ### Conventions
 
-- **Theme:** light/dark via `data-theme` on `<html>`, set before paint from `localStorage['etude.theme']` (falling back to `prefers-color-scheme`) to avoid a flash. The hub uses `shared/theme.css`; the Looper currently inlines its own copy of the tokens in its `<style>`. When adding a tool, prefer linking `shared/theme.css` and keep token names consistent (`--paper`, `--ink`, `--accent`, etc.).
+- **Theme:** light/dark via `data-theme` on `<html>`, set before paint from `localStorage['etude.theme']`, defaulting to **dark** for first-time visitors (no `prefers-color-scheme` fallback), to avoid a flash. The `?theme=dark|light` URL param (used by the extension's outbound links) wins and is remembered. The hub uses `shared/theme.css`; the Looper currently inlines its own copy of the tokens in its `<style>`. When adding a tool, prefer linking `shared/theme.css`, keep token names consistent (`--paper`, `--ink`, `--accent`, etc.), and default new visitors to dark to match the rest of the site.
 - **i18n:** English / Türkçe / Deutsch, auto-detected with a manual toggle. Strings live in an `I18N` object; markup uses `data-i18n="key"`, applied by a `t()` helper. Add all three languages for any new user-facing string.
 - **Fonts:** sans UI (`--ui`), mono for numeric/data readouts (`--mono`).
 - **Persistence:** `localStorage` for theme and language; **IndexedDB** for saved sessions (a file plus its loops and settings).
