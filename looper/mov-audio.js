@@ -1,15 +1,18 @@
 /* Etude Looper · mov-audio.js
-   Pulls the AAC audio track out of an .mp4/.mov the browser can PLAY but decodeAudioData
-   cannot demux (notably iPhone .mov on Safari), and decodes it to PCM with WebCodecs —
-   fast (seconds for a multi-minute clip), so the audio can run through the same
-   high-quality Signalsmith buffer engine as decoded files.
+   Pulls the audio track out of an .mp4/.mov the browser can PLAY but decodeAudioData
+   cannot demux (notably iPhone .mov on Safari, any .mov on Firefox), and turns it into
+   PCM the Signalsmith buffer engine can use — fast (seconds for a multi-minute clip).
 
-   Deliberately scoped to the common case: AAC-LC in a progressive (non-fragmented) moov,
-   including the QuickTime quirks a real iPhone recording has (mp4a sample-entry version 1,
-   esds nested inside a `wave` atom, a second non-AAC `apac` spatial-audio track to skip).
+   Two track families, covering the real-world cases:
+   - AAC-LC ('mp4a'), decoded with WebCodecs, including the QuickTime quirks a real
+     iPhone recording has (sample-entry version 1, esds nested inside `wave`, a second
+     non-AAC `apac` spatial-audio track to skip).
+   - Uncompressed LPCM ('lpcm' v2, 'sowt', 'twos', 'in24', 'in32', 'fl32', 'fl64',
+     'raw '), as written by DaVinci Resolve and QuickTime exports. Needs no decoder at
+     all — samples are read straight out of the file.
+
    Throws on anything it can't handle so the caller can fall back to live capture.
-
-   Vanilla, no build step, no dependencies. Requires WebCodecs AudioDecoder (iOS 16.4+). */
+   Vanilla, no build step, no dependencies. AAC path requires WebCodecs (iOS 16.4+). */
 
 const FRAME = 1024;   // AAC-LC samples per access unit
 
@@ -59,13 +62,27 @@ function readAsc(asc) {
   return { aot: (v >> 11) & 0x1f, sampleRate: SFI[(v >> 7) & 0xf], channels: (v >> 3) & 0xf };
 }
 
-// ---- locate the AAC track and build its sample list --------------------------
-export function demuxAacTrack(arrayBuffer) {
+// PCM sample-entry types and their fixed traits (endianness may be overridden by wave/enda
+// for in24/in32/fl32/fl64, and 'lpcm' v2 carries everything in its format flags).
+const PCM_TYPES = {
+  'sowt': { bits: 16, float: false, be: false, signed: true },
+  'twos': { bits: 16, float: false, be: true,  signed: true },   // bits may be 8 per samplesize field
+  'in24': { bits: 24, float: false, be: true,  signed: true },
+  'in32': { bits: 32, float: false, be: true,  signed: true },
+  'fl32': { bits: 32, float: true,  be: true,  signed: true },
+  'fl64': { bits: 64, float: true,  be: true,  signed: true },
+  'raw ': { bits: 8,  float: false, be: false, signed: false },
+  'lpcm': null,   // version-2 entry: read format flags
+};
+
+// ---- locate a supported audio track and build its sample list -----------------
+export function demuxAudioTrack(arrayBuffer) {
   const dv = new DataView(arrayBuffer);
   const top = boxIter(dv, 0, dv.byteLength);
   const moov = find(top, 'moov');
   if (!moov) throw new Error('no moov (fragmented or non-mp4?)');
   const moovBoxes = boxIter(dv, moov.body, moov.end);
+  const seen = [];
 
   for (const trak of findAll(moovBoxes, 'trak')) {
     const trakB = boxIter(dv, trak.body, trak.end);
@@ -82,25 +99,17 @@ export function demuxAacTrack(arrayBuffer) {
     // sample entry starts after stsd fullbox(8) + entry_count(4)
     const seStart = stsd.body + 8;
     const seType = str(dv, seStart + 4, 4);
-    if (seType !== 'mp4a') continue;   // skip 'apac' spatial audio and anything non-AAC
+    seen.push(seType);
+    if (seType !== 'mp4a' && !(seType in PCM_TYPES)) continue;   // skip 'apac' spatial audio etc.
 
     // AudioSampleEntry: 16 header + v(2)rev(2)vendor(4)ch(2)size(2)cid(2)pkt(2)rate(4)=20, then
-    // version-1 adds 16 bytes, version-2 adds 36. esds may be a direct child OR inside `wave`.
+    // version-1 adds 16 bytes, version-2 adds 36. Child boxes (esds/wave/enda) follow.
     const version = dv.getUint16(seStart + 16);
     const childStart = seStart + 36 + (version === 1 ? 16 : version === 2 ? 36 : 0);
     const seEnd = stsd.body + 8 + dv.getUint32(seStart);
-    let entryBoxes = boxIter(dv, childStart, seEnd);
-    let esds = find(entryBoxes, 'esds');
-    if (!esds) {
-      const wave = find(entryBoxes, 'wave');
-      if (wave) esds = find(boxIter(dv, wave.body, wave.end), 'esds');
-    }
-    if (!esds) throw new Error('AAC track has no esds');
-    const { objTypeInd, asc } = parseEsdsAsc(dv, esds.body, esds.end);
-    if (objTypeInd !== 0x40) throw new Error('not MPEG-4 audio (objType 0x' + objTypeInd.toString(16) + ')');
-    const { aot, sampleRate, channels } = readAsc(asc);
+    const entryBoxes = boxIter(dv, childStart, seEnd);
 
-    // sample tables → absolute file offset + size of every AAC access unit
+    // sample tables → absolute file offset + size of every sample
     const stsz = find(stblB, 'stsz'), stsc = find(stblB, 'stsc');
     const stco = find(stblB, 'stco'), co64 = find(stblB, 'co64');
     if (!stsz || !stsc || !(stco || co64)) throw new Error('missing sample tables');
@@ -137,9 +146,80 @@ export function demuxAacTrack(arrayBuffer) {
       }
     }
     if (!samples.length) throw new Error('no audio samples');
-    return { codec: 'mp4a.40.' + aot, sampleRate, channels: channels || 2, asc, samples };
+
+    if (seType === 'mp4a') {
+      // esds may be a direct child OR inside `wave`.
+      let esds = find(entryBoxes, 'esds');
+      if (!esds) {
+        const wave = find(entryBoxes, 'wave');
+        if (wave) esds = find(boxIter(dv, wave.body, wave.end), 'esds');
+      }
+      if (!esds) throw new Error('AAC track has no esds');
+      const { objTypeInd, asc } = parseEsdsAsc(dv, esds.body, esds.end);
+      if (objTypeInd !== 0x40) throw new Error('not MPEG-4 audio (objType 0x' + objTypeInd.toString(16) + ')');
+      const { aot, sampleRate, channels } = readAsc(asc);
+      return { kind: 'aac', codec: 'mp4a.40.' + aot, sampleRate, channels: channels || 2, asc, samples };
+    }
+
+    // ---- PCM: everything needed to read the raw samples ----
+    let channels = dv.getUint16(seStart + 24);
+    let sampleRate = dv.getUint32(seStart + 32) >>> 16;   // 16.16 fixed
+    let fmt = { ...(PCM_TYPES[seType] || {}) };
+    if (seType === 'lpcm') {
+      if (version !== 2) throw new Error('lpcm sample entry v' + version + ' unsupported');
+      sampleRate = Math.round(dv.getFloat64(seStart + 40));
+      channels = dv.getUint32(seStart + 48);
+      const bits = dv.getUint32(seStart + 56);
+      const flags = dv.getUint32(seStart + 60);   // kAudioFormatFlag: 1=float, 2=bigEndian, 4=signedInt
+      fmt = { bits, float: !!(flags & 1), be: !!(flags & 2), signed: !!(flags & 4) };
+    } else {
+      if (seType === 'twos' || seType === 'sowt') fmt.bits = dv.getUint16(seStart + 26) || fmt.bits;
+      const wave = find(entryBoxes, 'wave');   // QT: wave/enda(1) flips in24/in32/fl32/fl64 to little-endian
+      const enda = find(entryBoxes, 'enda') || (wave && find(boxIter(dv, wave.body, wave.end), 'enda'));
+      if (enda && dv.getUint16(enda.body) === 1) fmt.be = false;
+    }
+    if (![8, 16, 24, 32, 64].includes(fmt.bits) || (fmt.float && fmt.bits !== 32 && fmt.bits !== 64))
+      throw new Error('unsupported PCM layout (' + seType + ' ' + fmt.bits + 'bit)');
+    if (!channels || !sampleRate) throw new Error('bad PCM sample entry');
+    return { kind: 'pcm', sampleRate, channels, fmt, samples };
   }
-  throw new Error('no AAC (mp4a) audio track');
+  throw new Error('no supported audio track (saw: ' + (seen.join(', ') || 'none') + ')');
+}
+
+// ---- raw PCM read → planar Float32 -------------------------------------------
+function pcmDecode(track, arrayBuffer, onProgress) {
+  const { samples, channels: nCh, fmt, sampleRate } = track;
+  const bytesPer = fmt.bits / 8, frameBytes = bytesPer * nCh;
+  let totalBytes = 0; for (const s of samples) totalBytes += s.size;
+  // concatenate the sample byte ranges (chunk ranges need not be frame-aligned individually)
+  const raw = new Uint8Array(totalBytes);
+  const src = new Uint8Array(arrayBuffer);
+  let o = 0;
+  for (let i = 0; i < samples.length; i++) {
+    const s = samples[i];
+    raw.set(src.subarray(s.offset, s.offset + s.size), o); o += s.size;
+    if (onProgress && (i & 1023) === 0) onProgress(0.4 * i / samples.length);
+  }
+  const n = Math.floor(totalBytes / frameBytes);
+  const dv = new DataView(raw.buffer);
+  const L = new Float32Array(n), R = new Float32Array(n);
+  const c2 = nCh > 1 ? 1 : 0;   // mono duplicates; >2ch takes the first two
+  const le = !fmt.be;
+  const read = fmt.float
+    ? (fmt.bits === 64 ? (p) => dv.getFloat64(p, le) : (p) => dv.getFloat32(p, le))
+    : fmt.bits === 32 ? (p) => dv.getInt32(p, le) / 0x80000000
+    : fmt.bits === 24 ? (le ? (p) => ((dv.getUint8(p) | (dv.getUint8(p + 1) << 8) | (dv.getInt8(p + 2) << 16)) / 0x800000)
+                            : (p) => (((dv.getInt8(p) << 16) | (dv.getUint8(p + 1) << 8) | dv.getUint8(p + 2)) / 0x800000))
+    : fmt.bits === 16 ? (p) => dv.getInt16(p, le) / 0x8000
+    : fmt.signed ? (p) => dv.getInt8(p) / 0x80 : (p) => (dv.getUint8(p) - 128) / 0x80;
+  for (let i = 0; i < n; i++) {
+    const base = i * frameBytes;
+    L[i] = read(base);
+    R[i] = read(base + c2 * bytesPer);
+    if (onProgress && (i & 0xfffff) === 0) onProgress(0.4 + 0.6 * i / n);
+  }
+  if (onProgress) onProgress(1);
+  return { sampleRate, length: n, channels: [L, R] };
 }
 
 // ---- WebCodecs decode → planar Float32 PCM -----------------------------------
@@ -189,6 +269,8 @@ async function webcodecDecode(track, arrayBuffer, onProgress) {
 
 // Public: ArrayBuffer of an .mp4/.mov -> { sampleRate, length, channels:[L,R] }. Throws on unsupported.
 export async function decodeMovAudio(arrayBuffer, opts = {}) {
-  const track = demuxAacTrack(arrayBuffer);
-  return webcodecDecode(track, arrayBuffer, opts.onProgress);
+  const track = demuxAudioTrack(arrayBuffer);
+  return track.kind === 'pcm'
+    ? pcmDecode(track, arrayBuffer, opts.onProgress)
+    : webcodecDecode(track, arrayBuffer, opts.onProgress);
 }
