@@ -1180,34 +1180,34 @@ let lastT = 0, frameN = 0, endStopped = false;
 function tick() {
   if (preparing) { requestAnimationFrame(tick); return; }   // hold off looping/sync while audio is being prepared
   if (hasMedia()) {
-    const t = pTime();
+    const tNow = pTime();   // NB: not `t` — that would shadow the i18n helper called below
     // Loop: jump back the instant we reach B. Guard against re-firing during the seek.
-    if (loopOn && A != null && B != null && !pPaused() && t >= B && t >= lastT) {
+    if (loopOn && A != null && B != null && !pPaused() && tNow >= B && tNow >= lastT) {
       pSeek(A);
       ['handleA', 'handleB'].forEach(id => { const el = $(id); el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); });   // brackets pulse on each repeat
       lastT = A;
     } else {
-      lastT = t;
+      lastT = tNow;
     }
     // keep the muted video aligned to the audio engine
-    if (bufferMode && !pPaused() && !v.seeking && Math.abs(v.currentTime - t) > 0.3) {
-      try { v.currentTime = t; } catch (e) {}
+    if (bufferMode && !pPaused() && !v.seeking && Math.abs(v.currentTime - tNow) > 0.3) {
+      try { v.currentTime = tNow; } catch (e) {}
     }
     // stop cleanly at the end of a non-looping clip so the engine doesn't free-run past the buffer
-    if (bufferMode && !loopOn && shifterOn && pDur() && t >= pDur() - 0.03) {
+    if (bufferMode && !loopOn && shifterOn && pDur() && tNow >= pDur() - 0.03) {
       if (!endStopped) { endStopped = true; pause(); pSeek(0); setPlayUI(false); }
     } else { endStopped = false; }
     // the file has a video track but this browser can't decode it (e.g. HEVC .mov on Firefox): the
     // engine is playing yet no frames are painting → tell the user once, and how to fix it.
     if (frameTracking && bufferMode && !videoWarned && v.videoWidth > 0 && shifterOn && ac && ac.state === 'running'
-        && !v.paused && !document.hidden && t > 1.2 && performance.now() - lastFrameAt > 1500) {
+        && !v.paused && !document.hidden && tNow > 1.2 && performance.now() - lastFrameAt > 1500) {
       videoWarned = true;
       $('videoWarnBody').innerHTML = t('video_warn_body');
       $('videoWarnModal').hidden = false;
     }
     if ((frameN++ & 3) === 0) {   // repaint the bar/time only ~15×/s to spare the decoder
-      $('played').style.width = pct(t) + '%';
-      $('time').innerHTML = '<b>' + fmt(t) + '</b><span class="sep"> / </span><span class="tot">' + fmt(pDur()) + '</span>';
+      $('played').style.width = pct(tNow) + '%';
+      $('time').innerHTML = '<b>' + fmt(tNow) + '</b><span class="sep"> / </span><span class="tot">' + fmt(pDur()) + '</span>';
     }
   }
   requestAnimationFrame(tick);   // loop boundary checked every frame (tight)
@@ -1220,6 +1220,7 @@ if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
   frameTracking = true;
   const onFrame = () => { lastFrameAt = performance.now(); try { v.requestVideoFrameCallback(onFrame); } catch (e) {} };
   v.requestVideoFrameCallback(onFrame);
+  v.addEventListener('seeking', () => { lastFrameAt = performance.now(); });   // a seek stall (e.g. each A-B loop jump) is not "can't decode" — restart the watch
 }
 $('bar').onclick = e => { if (!pDur()) return; const r = $('bar').getBoundingClientRect(); pSeek((e.clientX - r.left) / r.width * pDur()); };
 
@@ -1390,7 +1391,7 @@ function drawMarks() {
     el.style.width = Math.max(2, w) + '%';
     el.style.top = (lane * 19) + 'px';
     el.title = s.name + ' · ' + fmt(s.start) + '–' + fmt(s.end);
-    el.textContent = w >= 9 ? s.name : '';   // only label when there's room; short loops show on hover
+    el.textContent = s.name;   // CSS ellipsis clips narrow bars; the title tooltip carries the full name
     el.onclick = () => activateSection(s);
     t.appendChild(el);
   });
