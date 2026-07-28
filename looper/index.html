@@ -640,6 +640,8 @@ const I18N = {
     empty_loops:"No saved loops yet. Mark A–B, then press “save loop”.",
     engine_ready:"engine ready", engine_native:"native, transpose off ({err})", preparing:"preparing hi-fi audio…", prompt_name:"Name this session:",
     video_warn_title:"Video can't be shown", video_warn_body:"This browser couldn't decode this file's video, so the picture is frozen. The codec isn't supported here (iPhone <b>.mov</b> files use HEVC, which Firefox can't play on Mac). The audio and every control still work. To see the video too, convert it to <b>MP4 (H.264)</b>, or open this page in Chrome or Safari.",
+    audio_warn_title:"Audio tools unavailable", audio_warn_body:"Hi-fi audio couldn't be prepared for this file, so transpose, pitch and speed are off and the video plays with its original sound only. If there is no sound at all, this browser can't decode this file's audio. Try <b>Chrome</b>, or convert the file to <b>MP4 (H.264 + AAC)</b>.",
+    capture_note_title:"Preparing audio the slow way", capture_note_body:"This browser can't decode this file's audio directly, so the Looper records it by playing the video through once. This takes as long as the video itself; the result is kept, so next time this file opens instantly. For an instant first open too, use <b>Chrome</b>, or convert the file to <b>MP4 (H.264 + AAC)</b>.",
     install_ios:"Open this page in <b>Safari</b>, tap the <b>Share</b> button {ico} at the bottom, then choose <b>Add to Home Screen</b>. It then runs full-screen and works offline.",
     install_other:"In <b>Chrome / Edge / Brave</b>: click the <b>install icon</b> in the address bar, or open the menu and choose <b>Install page as app</b>.<br><br>In <b>Safari</b> (Mac): <b>File → Add to Dock</b>."
   },
@@ -661,6 +663,8 @@ const I18N = {
     empty_loops:"Henüz kayıtlı döngü yok. A–B işaretle, sonra “döngüyü kaydet”e bas.",
     engine_ready:"motor hazır", engine_native:"yerel, transpoze kapalı ({err})", preparing:"hi-fi ses hazırlanıyor…", prompt_name:"Bu oturuma bir ad ver:",
     video_warn_title:"Video gösterilemiyor", video_warn_body:"Bu tarayıcı dosyanın videosunu çözemedi, bu yüzden görüntü donuk. Codec burada desteklenmiyor (iPhone <b>.mov</b> dosyaları HEVC kullanır; Firefox bunu Mac'te oynatamaz). Ses ve tüm kontroller çalışıyor. Videoyu da görmek için dosyayı <b>MP4'e (H.264)</b> dönüştürün ya da bu sayfayı Chrome veya Safari'de açın.",
+    audio_warn_title:"Ses araçları kullanılamıyor", audio_warn_body:"Bu dosya için hi-fi ses hazırlanamadı; transpoze, ince akort ve hız kapalı, video yalnızca kendi orijinal sesiyle oynuyor. Hiç ses yoksa bu tarayıcı dosyanın sesini çözemiyor demektir. <b>Chrome</b>'u deneyin ya da dosyayı <b>MP4'e (H.264 + AAC)</b> dönüştürün.",
+    capture_note_title:"Ses yavaş yoldan hazırlanıyor", capture_note_body:"Bu tarayıcı dosyanın sesini doğrudan çözemiyor; Looper videoyu bir kez baştan sona oynatarak sesi kaydediyor. Bu, videonun süresi kadar sürer; sonuç saklanır, dosya bir dahaki sefere anında açılır. İlk seferde de anında açılması için <b>Chrome</b> kullanın ya da dosyayı <b>MP4'e (H.264 + AAC)</b> dönüştürün.",
     install_ios:"Bu sayfayı <b>Safari</b>’de aç, alttaki <b>Paylaş</b> düğmesine {ico} dokun, sonra <b>Ana Ekrana Ekle</b>’yi seç. Ardından tam ekran çalışır ve çevrimdışı kullanılır.",
     install_other:"<b>Chrome / Edge / Brave</b>’de: adres çubuğundaki <b>yükle simgesine</b> tıkla ya da menüden <b>Sayfayı uygulama olarak yükle</b>’yi seç.<br><br><b>Safari</b> (Mac): <b>Dosya → Dock’a Ekle</b>."
   },
@@ -682,6 +686,8 @@ const I18N = {
     empty_loops:"Noch keine gespeicherten Loops. Markiere A–B und drücke dann „Loop speichern“.",
     engine_ready:"Engine bereit", engine_native:"nativ, Transponieren aus ({err})", preparing:"Hi-Fi-Audio wird vorbereitet…", prompt_name:"Benenne diese Sitzung:",
     video_warn_title:"Video nicht darstellbar", video_warn_body:"Dieser Browser konnte das Video dieser Datei nicht dekodieren, daher steht das Bild still. Der Codec wird hier nicht unterstützt (iPhone-<b>.mov</b>-Dateien nutzen HEVC, das Firefox auf dem Mac nicht abspielt). Ton und alle Bedienelemente funktionieren. Um auch das Video zu sehen, konvertiere die Datei zu <b>MP4 (H.264)</b> oder öffne diese Seite in Chrome oder Safari.",
+    audio_warn_title:"Audio-Werkzeuge nicht verfügbar", audio_warn_body:"Für diese Datei konnte kein Hi-Fi-Audio vorbereitet werden; Transponieren, Tonhöhe und Tempo sind aus, das Video läuft nur mit seinem Originalton. Ist gar kein Ton zu hören, kann dieser Browser das Audio dieser Datei nicht dekodieren. Versuche <b>Chrome</b> oder konvertiere die Datei zu <b>MP4 (H.264 + AAC)</b>.",
+    capture_note_title:"Audio wird auf dem langsamen Weg vorbereitet", capture_note_body:"Dieser Browser kann das Audio dieser Datei nicht direkt dekodieren; der Looper nimmt es auf, indem er das Video einmal durchspielt. Das dauert so lange wie das Video selbst; das Ergebnis wird gespeichert, die Datei öffnet beim nächsten Mal sofort. Für ein sofortiges erstes Öffnen nutze <b>Chrome</b> oder konvertiere die Datei zu <b>MP4 (H.264 + AAC)</b>.",
     install_ios:"Öffne diese Seite in <b>Safari</b>, tippe unten auf <b>Teilen</b> {ico} und wähle dann <b>Zum Home-Bildschirm</b>. Sie läuft dann im Vollbild und offline.",
     install_other:"In <b>Chrome / Edge / Brave</b>: Klicke auf das <b>Installieren-Symbol</b> in der Adressleiste oder wähle im Menü <b>Seite als App installieren</b>.<br><br>In <b>Safari</b> (Mac): <b>Ablage → Zum Dock hinzufügen</b>."
   }
@@ -883,7 +889,7 @@ let sections = [];
    ========================================================================= */
 /* brand is now a link back to the Etude hub (../); the drop zone + "open file" button open files */
 $('drop').onclick = () => { $('file').click(); };   // don't resume the AudioContext here: the first-tap unlock + openMedia handle it, and resuming would restart paused audio
-$('file').onchange = e => { if (e.target.files[0]) load(e.target.files[0]); };
+$('file').onchange = e => { if (e.target.files[0]) load(e.target.files[0]); e.target.value = ''; };   // clear so re-picking the same file fires change again
 ['dragenter','dragover'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $('drop').classList.add('hover'); }));
 ['dragleave','drop'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); $('drop').classList.remove('hover'); }));
 document.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer.files[0]) load(e.dataTransfer.files[0]); });
@@ -1036,6 +1042,32 @@ function captureHasSignal(buf) {   // sparse scan: any sample above the noise fl
   return false;
 }
 
+/* ---- captured-PCM cache: a capture pass costs the file's full duration in real time,
+   so keep its result in IndexedDB (Int16, ~half the Float32 size) keyed by the same
+   name__size identity as sessions. Reopening the file then skips the pass entirely. ---- */
+const pcmKey = (id) => 'pcm__' + id;
+function pcmCachePut(id, buf) {
+  try {
+    const n = buf.length, L = buf.getChannelData(0), R = buf.numberOfChannels > 1 ? buf.getChannelData(1) : L;
+    const head = new Uint32Array([buf.sampleRate, n]);
+    const pack = (src) => { const a = new Int16Array(n); for (let i = 0; i < n; i++) { const s = Math.max(-1, Math.min(1, src[i])); a[i] = s < 0 ? s * 0x8000 : s * 0x7fff; } return a; };
+    idbPut(pcmKey(id), new Blob([head, pack(L), pack(R)]));
+  } catch (e) {}
+}
+async function pcmCacheGet(id) {
+  try {
+    const blob = await idbGet(pcmKey(id));
+    if (!blob) return null;
+    const arr = await blob.arrayBuffer();
+    const head = new Uint32Array(arr, 0, 2), rate = head[0], n = head[1];
+    if (!rate || !n || arr.byteLength < 8 + n * 4) return null;
+    const li = new Int16Array(arr, 8, n), ri = new Int16Array(arr, 8 + n * 2, n);
+    const L = new Float32Array(n), R = new Float32Array(n);
+    for (let i = 0; i < n; i++) { L[i] = li[i] / (li[i] < 0 ? 0x8000 : 0x7fff); R[i] = ri[i] / (ri[i] < 0 ? 0x8000 : 0x7fff); }
+    return await pcmToBuffer([L, R], rate);
+  } catch (e) { return null; }
+}
+
 async function openMedia(blob, id, name, size, sessionData) {
   curBlob = blob;
   v.src = URL.createObjectURL(blob);
@@ -1059,15 +1091,25 @@ async function openMedia(blob, id, name, size, sessionData) {
 
   let got = null;
   try { got = await bufferFromFile(blob, name); } catch (e) {}
-  if (!got && isVideoFile(blob, name)) {   // last resort: capture by playing the file through once
-    try {
-      engineState = { preparing: true, capture: true, pct: 0 }; setEngine();
-      const b = await captureToBuffer(f => { engineState = { preparing: true, capture: true, pct: Math.round(f * 100) }; setEngine(); });
-      // a capture that recorded only silence means the element couldn't decode the audio track
-      // (it played the picture and recorded nothing) — a silent engine is worse than native fallback
-      if (!captureHasSignal(b)) throw new Error('capture-silent');
-      got = { buffer: b, how: 'capture' };
-    } catch (e) { if (mediaDbg) mediaDbg.capture = ((e && e.name) || e) + ''; }
+  if (!got && isVideoFile(blob, name)) {
+    const cached = await pcmCacheGet(id);            // a previous capture pass for this exact file?
+    if (cached) {
+      got = { buffer: cached, how: 'capture-cache' };
+    } else {                                          // last resort: capture by playing the file through once
+      try {
+        // tell the user up front WHY this is slow and that Chrome opens such files instantly
+        document.querySelector('#videoWarnModal .modal-title').innerHTML = t('capture_note_title');
+        $('videoWarnBody').innerHTML = t('capture_note_body');
+        $('videoWarnModal').hidden = false;
+        engineState = { preparing: true, capture: true, pct: 0 }; setEngine();
+        const b = await captureToBuffer(f => { engineState = { preparing: true, capture: true, pct: Math.round(f * 100) }; setEngine(); });
+        // a capture that recorded only silence means the element couldn't decode the audio track
+        // (it played the picture and recorded nothing) — a silent engine is worse than native fallback
+        if (!captureHasSignal(b)) throw new Error('capture-silent');
+        got = { buffer: b, how: 'capture' };
+        pcmCachePut(id, b);                           // next open of this file skips the pass
+      } catch (e) { if (mediaDbg) mediaDbg.capture = ((e && e.name) || e) + ''; }
+    }
   }
 
   preparing = false;
@@ -1085,6 +1127,11 @@ async function openMedia(blob, id, name, size, sessionData) {
     if (_mediaSrc) { try { _mediaSrc.connect(gainNode); } catch (e) {} }
     engineState = { err: "decode failed" };
     if (mediaDbg) mediaDbg.decode = 'FAIL (native fallback)';
+    if (mediaDbg && mediaDbg.capture) {                  // even the capture pass got no usable audio: say so visibly
+      document.querySelector('#videoWarnModal .modal-title').innerHTML = t('audio_warn_title');
+      $('videoWarnBody').innerHTML = t('audio_warn_body');
+      $('videoWarnModal').hidden = false;
+    }
   }
   setPitchEnabled(bufferMode); setEngine();
   applySession();     // sets the sliders; the engine adopts them when play() builds it
@@ -1240,6 +1287,7 @@ function tick() {
     if (frameTracking && bufferMode && !videoWarned && v.videoWidth > 0 && shifterOn && ac && ac.state === 'running'
         && !v.paused && !document.hidden && tNow > 1.2 && performance.now() - lastFrameAt > 1500) {
       videoWarned = true;
+      document.querySelector('#videoWarnModal .modal-title').innerHTML = t('video_warn_title');   // the modal is shared with the audio warning
       $('videoWarnBody').innerHTML = t('video_warn_body');
       $('videoWarnModal').hidden = false;
     }
@@ -1456,7 +1504,7 @@ function renderHistory() {
       '<div class="nm">' + esc(s.label || s.name) + '</div>' +
       '<div class="meta"><span>' + (s.sections ? s.sections.length : 0) + ' loops</span><span>' + ago(s.lastOpened) + '</span></div>' +
       (s.label ? '<div class="meta" style="opacity:.7">' + esc(s.name) + '</div>' : '');
-    el.querySelector('.del').onclick = (ev) => { ev.stopPropagation(); delete store[s.id]; saveStore(); idbDel(s.id); renderHistory(); };
+    el.querySelector('.del').onclick = (ev) => { ev.stopPropagation(); delete store[s.id]; saveStore(); idbDel(s.id); idbDel(pcmKey(s.id)); renderHistory(); };
     el.querySelector('.ren').onclick = (ev) => { ev.stopPropagation(); const nm = prompt(t("prompt_name"), s.label || s.name); if (nm != null) { s.label = nm.trim(); store[s.id] = s; saveStore(); renderHistory(); } };
     el.onclick = () => { openFromHistory(s.id); $('sessionsModal').hidden = true; };
     list.appendChild(el);
