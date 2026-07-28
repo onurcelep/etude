@@ -782,8 +782,11 @@ async function makeSignalsmithShifter(context, buf, dest) {
 }
 function makeShifter() { return makeSignalsmithShifter(ac, buffer, gainNode); }
 const hasMedia = () => bufferMode ? !!buffer : !!v.src;
-const pDur  = () => bufferMode ? (shifter ? shifter.duration : 0) : (v.duration || 0);
-const pTime = () => bufferMode ? (shifter ? shifter.percentagePlayed / 100 * shifter.duration : 0) : v.currentTime;
+// Before the first play the engine doesn't exist yet (built lazily on a running context),
+// so fall back to the <video> element: seeks land on v.currentTime, which the engine adopts
+// when play() builds it. Without this, every pre-play seek dead-ends on pDur() === 0.
+const pDur  = () => bufferMode ? (shifter ? shifter.duration : (v.duration || 0)) : (v.duration || 0);
+const pTime = () => bufferMode ? (shifter ? shifter.percentagePlayed / 100 * shifter.duration : v.currentTime) : v.currentTime;
 const pPaused = () => v.paused;
 function pSeek(t) {
   if (preparing) return;   // don't disturb the audio-prep pass (a capture plays the file through)
