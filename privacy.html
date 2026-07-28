@@ -7,7 +7,7 @@
 <meta name="description" content="Etude's privacy policy. Etude collects no personal data beyond anonymous page-view analytics. Every tool and the browser extension run entirely in your browser." />
 <meta name="theme-color" content="#efeee7" id="themeColor" />
 <link rel="icon" href="looper/icon-192.png" />
-<script>/* set theme before paint to avoid a flash */try{var _t=localStorage.getItem('etude.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
+<script>/* set theme before paint to avoid a flash; default is dark */try{var _t=localStorage.getItem('etude.theme')||'dark';document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
 <script>/* enable reveal animations only when motion is welcome; set before paint to avoid a flash */try{if(!matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.classList.add('anim');}catch(e){}</script>
 <link rel="stylesheet" href="shared/theme.css" />
 <style>
@@ -132,7 +132,7 @@
     const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     localStorage.setItem('etude.theme', next); applyTheme(next);
   };
-  applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
+  applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
 
   /* reveal the intro group (staggered) + each section heading as it scrolls in */
   (function(){
