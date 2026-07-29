@@ -4,11 +4,11 @@
 
 > *étude*: a piece written to practice a skill. That's the whole idea.
 
-**▶ Live:** https://onurcelep.github.io/etude/
+**▶ Live:** https://etude.fyi/
 
 ## Tools
 
-### Looper · [`/looper/`](https://onurcelep.github.io/etude/looper/)
+### Looper · [`/looper/`](https://etude.fyi/looper/)
 
 Open a local video or audio file, loop a passage, slow it down, and change the key. Nothing is uploaded; your files never leave your device.
 
