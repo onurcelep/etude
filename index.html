@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Etude · tools for practicing musicians</title>
-<meta name="description" content="A small suite of private, offline, browser-based tools for practicing musicians. No accounts, no uploads." />
+<meta name="description" content="A small suite of free, private, offline, browser-based tools for practicing musicians. No accounts, no uploads." />
 <meta name="theme-color" content="#f3efe4" id="themeColor" />
 <link rel="icon" href="looper/icon-192.png" />
 <script>/* set theme before paint to avoid a flash; ?theme=dark|light (e.g. arriving from the extension) wins and is remembered; default is dark */try{var _p=new URLSearchParams(location.search).get('theme');if(_p!=='dark'&&_p!=='light')_p=null;var _t=_p||localStorage.getItem('etude.theme')||'dark';if(_p)localStorage.setItem('etude.theme',_p);document.documentElement.setAttribute('data-theme',_t);}catch(e){}</script>
@@ -15,6 +15,8 @@
        -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
   .top .tag{color:var(--mut);font-size:13px;border-left:1px solid var(--line-2);padding-left:14px}
   .grow{flex:1}
+  .langsel{font-family:var(--mono);font-size:12px;color:var(--mut);background:transparent;border:1px solid var(--line-2);border-radius:var(--r-sm);padding:6px 7px;cursor:pointer}
+  .langsel:hover,.langsel:focus{outline:none;border-color:var(--accent)}
   @media (max-width:640px){ .top .tag{display:none} }
 
   .wrap{max-width:1000px;margin:0 auto;padding:56px 26px 40px}
@@ -69,44 +71,45 @@
 <body>
   <div class="top">
     <span class="brand"><svg class="mark" viewBox="0 0 13 24" aria-hidden="true"><rect x="1" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/><rect x="4.6" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><circle cx="8" cy="9" r="1.3" fill="currentColor"/><circle cx="8" cy="15" r="1.3" fill="currentColor"/></svg><span class="title">Étude</span><svg class="mark" viewBox="0 0 13 24" aria-hidden="true"><circle cx="5" cy="9" r="1.3" fill="currentColor"/><circle cx="5" cy="15" r="1.3" fill="currentColor"/><rect x="7.1" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><rect x="9.4" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/></svg></span>
-    <span class="tag">tools for practicing musicians</span>
+    <span class="tag" data-i18n="tag">tools for practicing musicians</span>
     <span class="grow"></span>
+    <select id="langSel" class="langsel" title="Language" aria-label="Language"><option value="en">EN</option><option value="tr">TR</option><option value="de">DE</option></select>
     <button class="icon-btn" id="themeBtn" title="Switch light / dark" aria-label="Switch light or dark theme"></button>
   </div>
 
   <main class="wrap">
     <section class="hero">
-      <h1 class="reveal" style="--rd:40ms">Practice tools that stay out of your way.</h1>
-      <p class="reveal" style="--rd:130ms">A small suite of private, offline, browser-based tools for musicians. No accounts, no uploads. Everything runs right in your browser.</p>
+      <h1 class="reveal" style="--rd:40ms" data-i18n="hero_title">Practice tools that stay out of your way.</h1>
+      <p class="reveal" style="--rd:130ms" data-i18n="hero_lede">A small suite of free, private, offline, browser-based tools for musicians. No accounts, no uploads. Everything runs right in your browser.</p>
     </section>
 
     <section class="tools">
       <a class="tool reveal" style="--rd:240ms" href="looper/">
-        <span class="badge">live</span>
+        <span class="badge" data-i18n="badge_live">live</span>
         <span class="g">𝄆𝄇</span>
         <h3>Looper</h3>
-        <p>Loop a passage, slow it down, and change the key in your own video or audio.</p>
+        <p data-i18n="looper_desc">Loop a passage, slow it down, and change the key in your own video or audio.</p>
       </a>
 
       <div class="tool soon reveal" style="--rd:320ms">
-        <span class="badge">soon</span>
+        <span class="badge" data-i18n="badge_soon">soon</span>
         <span class="g">◔</span>
-        <h3>Metronome</h3>
-        <p>Tempo, subdivisions, and tap. Simple and precise.</p>
+        <h3 data-i18n="metronome_name">Metronome</h3>
+        <p data-i18n="metronome_desc">Tempo, subdivisions, and tap. Simple and precise.</p>
       </div>
 
       <div class="tool soon reveal" style="--rd:400ms">
-        <span class="badge">soon</span>
+        <span class="badge" data-i18n="badge_soon">soon</span>
         <span class="g">♪</span>
-        <h3>Tuner</h3>
-        <p>A chromatic tuner for your instrument, with adjustable reference pitch.</p>
+        <h3 data-i18n="tuner_name">Tuner</h3>
+        <p data-i18n="tuner_desc">A chromatic tuner for your instrument, with adjustable reference pitch.</p>
       </div>
     </section>
 
     <section class="ext reveal" style="--rd:480ms">
       <div>
-        <h3>Looper for YouTube</h3>
-        <p>The browser extension brings the same loop, slow-down, and transpose to YouTube and other video sites. Free, open source, nothing uploaded.</p>
+        <h3 data-i18n="ext_title">Looper for YouTube</h3>
+        <p data-i18n="ext_desc">The browser extension brings the same loop, slow-down, and transpose to YouTube and other video sites. Free, open source, nothing uploaded.</p>
       </div>
       <div class="ext-cta">
         <a class="btn primary" id="extInstall" href="https://chromewebstore.google.com/detail/okkodbklbbcakcioebkfhonilgmdcmcd" target="_blank" rel="noopener">Add to Chrome</a>
@@ -116,14 +119,74 @@
   </main>
 
   <footer>
-    <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener">source</a> (MIT) ·
-    <a href="privacy.html">privacy</a> ·
-    <a href="https://buymeacoffee.com/onurcelep" target="_blank" rel="noopener">buy me a coffee</a> ·
+    <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener" data-i18n="f_source">source</a> (MIT) ·
+    <a href="privacy.html" data-i18n="f_privacy">privacy</a> ·
+    <a href="https://buymeacoffee.com/onurcelep" target="_blank" rel="noopener" data-i18n="coffee">buy me a coffee</a> ·
     <a href="https://onurcelep.github.io" target="_blank" rel="noopener">© Onur Celep</a>
   </footer>
 
 <script>
   const $ = id => document.getElementById(id);
+
+  /* ---- i18n: EN / TR / DE, same convention as the Looper (I18N object, t(), auto-detect, shared 'etude.lang' key) ---- */
+  const I18N = {
+    en: {
+      tag:"tools for practicing musicians",
+      hero_title:"Practice tools that stay out of your way.",
+      hero_lede:"A small suite of free, private, offline, browser-based tools for musicians. No accounts, no uploads. Everything runs right in your browser.",
+      badge_live:"live", badge_soon:"soon",
+      looper_desc:"Loop a passage, slow it down, and change the key in your own video or audio.",
+      metronome_name:"Metronome", metronome_desc:"Tempo, subdivisions, and tap. Simple and precise.",
+      tuner_name:"Tuner", tuner_desc:"A chromatic tuner for your instrument, with adjustable reference pitch.",
+      ext_title:"Looper for YouTube",
+      ext_desc:"The browser extension brings the same loop, slow-down, and transpose to YouTube and other video sites. Free, open source, nothing uploaded.",
+      add_chrome:"Add to Chrome", add_firefox:"Add to Firefox", add_edge:"Add to Edge", add_opera:"Add to Opera",
+      also_on:"also on {links}", for_desktop:"for desktop browsers: {links}",
+      f_source:"source", f_privacy:"privacy", coffee:"buy me a coffee"
+    },
+    tr: {
+      tag:"müzisyenler için çalışma araçları",
+      hero_title:"Yoluna çıkmayan çalışma araçları.",
+      hero_lede:"Müzisyenler için ücretsiz, gizliliğe saygılı, çevrimdışı, tarayıcı tabanlı küçük bir araç seti. Hesap yok, yükleme yok. Her şey doğrudan tarayıcında çalışır.",
+      badge_live:"yayında", badge_soon:"yakında",
+      looper_desc:"Kendi video veya ses dosyanda bir bölümü döngüye al, yavaşlat ve tonunu değiştir.",
+      metronome_name:"Metronom", metronome_desc:"Tempo, alt vuruşlar ve tap. Basit ve hassas.",
+      tuner_name:"Akort Aleti", tuner_desc:"Enstrümanın için ayarlanabilir referans frekanslı kromatik akort aleti.",
+      ext_title:"YouTube için Looper",
+      ext_desc:"Tarayıcı eklentisi aynı döngüleme, yavaşlatma ve transpozeyi YouTube'a ve diğer video sitelerine getirir. Ücretsiz, açık kaynak, hiçbir şey yüklenmez.",
+      add_chrome:"Chrome'a ekle", add_firefox:"Firefox'a ekle", add_edge:"Edge'e ekle", add_opera:"Opera'ya ekle",
+      also_on:"{links} için de mevcut", for_desktop:"masaüstü tarayıcılar için: {links}",
+      f_source:"kaynak", f_privacy:"gizlilik", coffee:"bana kahve ısmarla"
+    },
+    de: {
+      tag:"Werkzeuge für übende Musiker",
+      hero_title:"Übungswerkzeuge, die dir nicht im Weg stehen.",
+      hero_lede:"Eine kleine Sammlung kostenloser, privater, offline nutzbarer, browserbasierter Werkzeuge für Musiker. Keine Konten, keine Uploads. Alles läuft direkt in deinem Browser.",
+      badge_live:"live", badge_soon:"bald",
+      looper_desc:"Loope eine Passage, verlangsame sie und ändere die Tonart in deinem eigenen Video oder Audio.",
+      metronome_name:"Metronom", metronome_desc:"Tempo, Unterteilungen und Tap. Einfach und präzise.",
+      tuner_name:"Stimmgerät", tuner_desc:"Ein chromatisches Stimmgerät für dein Instrument, mit einstellbarem Kammerton.",
+      ext_title:"Looper für YouTube",
+      ext_desc:"Die Browser-Erweiterung bringt Loop, Verlangsamen und Transponieren auf YouTube und andere Videoseiten. Kostenlos, Open Source, nichts wird hochgeladen.",
+      add_chrome:"Zu Chrome hinzufügen", add_firefox:"Zu Firefox hinzufügen", add_edge:"Zu Edge hinzufügen", add_opera:"Zu Opera hinzufügen",
+      also_on:"auch für {links}", for_desktop:"für Desktop-Browser: {links}",
+      f_source:"Quelltext", f_privacy:"Datenschutz", coffee:"spendier mir einen Kaffee"
+    }
+  };
+  let lang = 'en';
+  function t(k, vars) {
+    let s = (I18N[lang] && I18N[lang][k] != null) ? I18N[lang][k] : (I18N.en[k] != null ? I18N.en[k] : k);
+    if (vars) for (const p in vars) s = s.split('{' + p + '}').join(vars[p]);
+    return s;
+  }
+  function applyLang() {
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.documentElement.lang = lang;
+    const ls = $('langSel'); if (ls) ls.value = lang;
+    renderExtCta();
+  }
+  function setLang(l) { lang = I18N[l] ? l : 'en'; try { localStorage.setItem('etude.lang', lang); } catch (e) {} applyLang(); }
+
   const SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6"/></svg>';
   const MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8 8 0 0 1 9.4 4 7 7 0 1 0 20 14.6z"/></svg>';
   function applyTheme(t){
@@ -138,30 +201,44 @@
   applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
 
   /* adaptive install button: Firefox installs the signed .xpi in place (AMO doorhanger),
-     Chromium browsers go to the Web Store, everything else gets plain store links */
-  (function(){
+     Chromium browsers go to the Web Store, everything else gets plain store links.
+     Rendered through t() so applyLang() can re-label it on a language switch. */
+  const renderExtCta = (function(){
     var CWS = 'https://chromewebstore.google.com/detail/okkodbklbbcakcioebkfhonilgmdcmcd';
     var AMO = 'https://addons.mozilla.org/firefox/addon/etude-looper/';
     var XPI = 'https://addons.mozilla.org/firefox/downloads/latest/etude-looper/latest.xpi';
-    var btn = $('extInstall'), alt = $('extAlt');
     var ua = navigator.userAgent;
     var mobile = /Android|iPhone|iPad|iPod/.test(ua) || (navigator.maxTouchPoints > 1 && /Mac/.test(ua)); /* iPadOS reports as Mac */
     var firefox = /Firefox\//.test(ua), chromium = /Chrome\/|Chromium\//.test(ua);
     function link(href, label){ return '<a href="' + href + '" target="_blank" rel="noopener">' + label + '</a>'; }
-    if (firefox && !mobile) {
-      btn.textContent = 'Add to Firefox';
-      btn.href = XPI;
-      btn.removeAttribute('target'); /* same-tab click is what pops Firefox's install prompt */
-      alt.innerHTML = 'also on ' + link(CWS, 'Chrome');
-    } else if (chromium && !mobile) {
-      if (/Edg\//.test(ua)) btn.textContent = 'Add to Edge';
-      else if (/OPR\//.test(ua)) btn.textContent = 'Add to Opera';
-      /* default markup already targets the Chrome Web Store */
-    } else {
-      btn.remove();
-      alt.innerHTML = 'for desktop browsers: ' + link(CWS, 'Chrome') + ' · ' + link(AMO, 'Firefox');
-    }
+    return function(){
+      var btn = $('extInstall'), alt = $('extAlt');
+      if (firefox && !mobile) {
+        btn.textContent = t('add_firefox');
+        btn.href = XPI;
+        btn.removeAttribute('target'); /* same-tab click is what pops Firefox's install prompt */
+        alt.innerHTML = t('also_on', { links: link(CWS, 'Chrome') });
+      } else if (chromium && !mobile) {
+        if (/Edg\//.test(ua)) btn.textContent = t('add_edge');
+        else if (/OPR\//.test(ua)) btn.textContent = t('add_opera');
+        else btn.textContent = t('add_chrome'); /* the markup already targets the Chrome Web Store */
+        alt.innerHTML = t('also_on', { links: link(AMO, 'Firefox') });
+      } else {
+        btn.style.display = 'none'; /* hidden, not removed, so a language switch can re-render */
+        alt.innerHTML = t('for_desktop', { links: link(CWS, 'Chrome') + ' · ' + link(AMO, 'Firefox') });
+      }
+    };
   })();
+
+  /* ---- language: auto-detect from browser, remember manual choice ---- */
+  try {
+    const stored = localStorage.getItem('etude.lang');
+    const nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    lang = stored || (I18N[nav] ? nav : 'en');
+  } catch (e) { lang = 'en'; }
+  if (!I18N[lang]) lang = 'en';
+  $('langSel').onchange = () => setLang($('langSel').value);
+  applyLang();
 
   /* scroll-in reveals: add .in when an element scrolls into view (IO, once each) */
   (function(){

@@ -16,6 +16,8 @@
        -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
   .top .tag{color:var(--mut);font-size:13px;border-left:1px solid var(--line-2);padding-left:14px}
   .grow{flex:1}
+  .langsel{font-family:var(--mono);font-size:12px;color:var(--mut);background:transparent;border:1px solid var(--line-2);border-radius:var(--r-sm);padding:6px 7px;cursor:pointer}
+  .langsel:hover,.langsel:focus{outline:none;border-color:var(--accent)}
   @media (max-width:640px){ .top .tag{display:none} }
 
   .wrap{max-width:760px;margin:0 auto;padding:52px 26px 20px}
@@ -54,73 +56,198 @@
     <a class="brand" href="./" style="border:0;display:flex;align-items:center;gap:2px;color:var(--ink)">
       <svg class="mark" viewBox="0 0 13 24" width="13" height="24" aria-hidden="true"><rect x="1" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/><rect x="4.6" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><circle cx="8" cy="9" r="1.3" fill="currentColor"/><circle cx="8" cy="15" r="1.3" fill="currentColor"/></svg><span class="title" style="font-family:var(--display);font-weight:600;padding:0 4px">Étude</span><svg class="mark" viewBox="0 0 13 24" width="13" height="24" aria-hidden="true"><circle cx="5" cy="9" r="1.3" fill="currentColor"/><circle cx="5" cy="15" r="1.3" fill="currentColor"/><rect x="7.1" y="4" width="1.3" height="16" rx="0.5" fill="currentColor"/><rect x="9.4" y="4" width="2.6" height="16" rx="0.7" fill="currentColor"/></svg>
     </a>
-    <span class="tag">privacy policy</span>
+    <span class="tag" data-i18n="tag">privacy policy</span>
     <span class="grow"></span>
+    <select id="langSel" class="langsel" title="Language" aria-label="Language"><option value="en">EN</option><option value="tr">TR</option><option value="de">DE</option></select>
     <button class="icon-btn" id="themeBtn" title="Switch light / dark" aria-label="Switch light or dark theme"></button>
   </div>
 
   <main class="wrap">
-    <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: 7 July 2026</p>
+    <h1 data-i18n="h1">Privacy Policy</h1>
+    <p class="updated" data-i18n="updated">Last updated: 7 July 2026</p>
 
-    <p class="lede">Etude collects <b>no personal data</b>. Every tool on this site, and the Etude browser extension, run entirely in your browser. There are no accounts and no servers. The website uses anonymous, cookie-free analytics to count visits; it cannot identify you and never sees what you do inside a tool.</p>
+    <p class="lede" data-i18n-html="lede">Etude collects <b>no personal data</b>. Every tool on this site, and the Etude browser extension, run entirely in your browser. There are no accounts and no servers. The website uses anonymous, cookie-free analytics to count visits; it cannot identify you and never sees what you do inside a tool.</p>
 
     <div class="callout">
-      <p>In one line: nothing you do inside a tool is sent anywhere. Your files, your videos, and your settings never leave your device.</p>
+      <p data-i18n="callout">In one line: nothing you do inside a tool is sent anywhere. Your files, your videos, and your settings never leave your device.</p>
     </div>
 
-    <h2>What Etude is</h2>
-    <p>Etude is a small suite of offline, browser-based tools for practicing musicians, including the Looper (a web app) and the Etude Looper browser extension for online video. This policy covers the website at etude.fyi and the browser extension.</p>
+    <h2 data-i18n="h_what">What Etude is</h2>
+    <p data-i18n="p_what">Etude is a small suite of offline, browser-based tools for practicing musicians, including the Looper (a web app) and the Etude Looper browser extension for online video. This policy covers the website at etude.fyi and the browser extension.</p>
 
-    <h2>Data we collect</h2>
-    <p><strong>Anonymous page views only.</strong> Etude does not collect, transmit, sell, or share any personal information. Specifically, it does not:</p>
+    <h2 data-i18n="h_collect">Data we collect</h2>
+    <p data-i18n-html="p_collect_intro"><strong>Anonymous page views only.</strong> Etude does not collect, transmit, sell, or share any personal information. Specifically, it does not:</p>
     <ul>
-      <li>require an account or a login;</li>
-      <li>send your audio, video, or files to any server (all processing happens locally in your browser);</li>
-      <li>use cookies, fingerprinting, advertising, or third-party trackers;</li>
-      <li>read or store your browsing history;</li>
-      <li>collect clicks, keystrokes, or any file or behavioral data.</li>
+      <li data-i18n="li_collect_1">require an account or a login;</li>
+      <li data-i18n="li_collect_2">send your audio, video, or files to any server (all processing happens locally in your browser);</li>
+      <li data-i18n="li_collect_3">use cookies, fingerprinting, advertising, or third-party trackers;</li>
+      <li data-i18n="li_collect_4">read or store your browsing history;</li>
+      <li data-i18n="li_collect_5">collect clicks, keystrokes, or any file or behavioral data.</li>
     </ul>
-    <p>The website uses <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noopener">Cloudflare Web Analytics</a>, a privacy-focused analytics service, to count page visits. It does not use cookies and cannot identify you individually; it only reports aggregate numbers, like how many people visited a page, which we use to see whether Etude is worth improving.</p>
+    <p data-i18n-html="p_analytics">The website uses <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noopener">Cloudflare Web Analytics</a>, a privacy-focused analytics service, to count page visits. It does not use cookies and cannot identify you individually; it only reports aggregate numbers, like how many people visited a page, which we use to see whether Etude is worth improving.</p>
 
-    <h2>Data stored on your device</h2>
-    <p>To remember your preferences, Etude saves a few things <strong>locally on your device only</strong>, using your browser's own storage (localStorage and IndexedDB). This data never leaves your browser and is not accessible to us or anyone else:</p>
+    <h2 data-i18n="h_device">Data stored on your device</h2>
+    <p data-i18n-html="p_device_intro">To remember your preferences, Etude saves a few things <strong>locally on your device only</strong>, using your browser's own storage (localStorage and IndexedDB). This data never leaves your browser and is not accessible to us or anyone else:</p>
     <ul>
-      <li>your theme (light or dark) and language choice;</li>
-      <li>your saved practice sessions and named A-B loops, including their settings;</li>
-      <li>for the extension, your per-video loops and control settings.</li>
+      <li data-i18n="li_device_1">your theme (light or dark) and language choice;</li>
+      <li data-i18n="li_device_2">your saved practice sessions and named A-B loops, including their settings;</li>
+      <li data-i18n="li_device_3">for the extension, your per-video loops and control settings.</li>
     </ul>
-    <p>You can clear this at any time by clearing your browser's site data or removing the extension.</p>
+    <p data-i18n="p_device_clear">You can clear this at any time by clearing your browser's site data or removing the extension.</p>
 
-    <h2>The browser extension</h2>
-    <p>The Etude Looper extension adds a practice panel to YouTube video pages so you can transpose, change speed without changing pitch, and set A-B loops. To do this it requests:</p>
+    <h2 data-i18n="h_ext">The browser extension</h2>
+    <p data-i18n="p_ext_intro">The Etude Looper extension adds a practice panel to YouTube video pages so you can transpose, change speed without changing pitch, and set A-B loops. To do this it requests:</p>
     <ul>
-      <li><strong>storage</strong> — to save your loops and settings locally, as described above;</li>
-      <li><strong>access to youtube.com</strong> — so it can attach its audio engine to the video you are watching and show its controls. This access is limited to YouTube, the only site the extension supports.</li>
+      <li data-i18n-html="li_ext_1"><strong>storage</strong>: to save your loops and settings locally, as described above;</li>
+      <li data-i18n-html="li_ext_2"><strong>access to youtube.com</strong>: so it can attach its audio engine to the video you are watching and show its controls. This access is limited to YouTube, the only site the extension supports.</li>
     </ul>
-    <p>All audio is processed locally in real time. The extension transmits nothing, and includes no remote code: all of its code, including the WebAssembly audio engine, ships inside the extension package.</p>
+    <p data-i18n="p_ext_local">All audio is processed locally in real time. The extension transmits nothing, and includes no remote code: all of its code, including the WebAssembly audio engine, ships inside the extension package.</p>
 
-    <h2>Third-party links</h2>
-    <p>Etude contains optional links to external sites, such as its <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener">source code on GitHub</a> and a "buy me a coffee" page. If you follow those links, the destination site's own privacy policy applies. Etude itself does not share any data with them.</p>
+    <h2 data-i18n="h_links">Third-party links</h2>
+    <p data-i18n-html="p_links">Etude contains optional links to external sites, such as its <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener">source code on GitHub</a> and a "buy me a coffee" page. If you follow those links, the destination site's own privacy policy applies. Etude itself does not share any data with them.</p>
 
-    <h2>Children</h2>
-    <p>Etude is a general-audience tool that collects no data, and is safe for use by anyone.</p>
+    <h2 data-i18n="h_children">Children</h2>
+    <p data-i18n="p_children">Etude is a general-audience tool that collects no data, and is safe for use by anyone.</p>
 
-    <h2>Changes to this policy</h2>
-    <p>If this policy changes, the updated version will be posted on this page with a new "last updated" date.</p>
+    <h2 data-i18n="h_changes">Changes to this policy</h2>
+    <p data-i18n="p_changes">If this policy changes, the updated version will be posted on this page with a new "last updated" date.</p>
 
-    <h2>Contact</h2>
-    <p>Questions about privacy in Etude? Contact Onur Celep at <a href="mailto:onurcelep@gmail.com">onurcelep@gmail.com</a>, or open an issue on <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener">GitHub</a>.</p>
+    <h2 data-i18n="h_contact">Contact</h2>
+    <p data-i18n-html="p_contact">Questions about privacy in Etude? Contact Onur Celep at <a href="mailto:onurcelep@gmail.com">onurcelep@gmail.com</a>, or open an issue on <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener">GitHub</a>.</p>
   </main>
 
   <footer>
-    <a href="./">home</a> ·
-    <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener">source</a> (MIT) ·
+    <a href="./" data-i18n="f_home">home</a> ·
+    <a href="https://github.com/onurcelep/etude" target="_blank" rel="noopener" data-i18n="f_source">source</a> (MIT) ·
     <a href="https://onurcelep.github.io" target="_blank" rel="noopener">© Onur Celep</a>
   </footer>
 
 <script>
   const $ = id => document.getElementById(id);
+
+  /* ---- i18n: EN / TR / DE, same convention as the Looper (I18N object, t(), auto-detect, shared 'etude.lang' key).
+     Strings that carry markup (links, <b>, <strong>) hang off data-i18n-html and are applied via innerHTML. ---- */
+  const I18N = {
+    en: {
+      tag:"privacy policy", h1:"Privacy Policy", updated:"Last updated: 7 July 2026",
+      lede:"Etude collects <b>no personal data</b>. Every tool on this site, and the Etude browser extension, run entirely in your browser. There are no accounts and no servers. The website uses anonymous, cookie-free analytics to count visits; it cannot identify you and never sees what you do inside a tool.",
+      callout:"In one line: nothing you do inside a tool is sent anywhere. Your files, your videos, and your settings never leave your device.",
+      h_what:"What Etude is",
+      p_what:"Etude is a small suite of offline, browser-based tools for practicing musicians, including the Looper (a web app) and the Etude Looper browser extension for online video. This policy covers the website at etude.fyi and the browser extension.",
+      h_collect:"Data we collect",
+      p_collect_intro:"<strong>Anonymous page views only.</strong> Etude does not collect, transmit, sell, or share any personal information. Specifically, it does not:",
+      li_collect_1:"require an account or a login;",
+      li_collect_2:"send your audio, video, or files to any server (all processing happens locally in your browser);",
+      li_collect_3:"use cookies, fingerprinting, advertising, or third-party trackers;",
+      li_collect_4:"read or store your browsing history;",
+      li_collect_5:"collect clicks, keystrokes, or any file or behavioral data.",
+      p_analytics:"The website uses <a href='https://www.cloudflare.com/web-analytics/' target='_blank' rel='noopener'>Cloudflare Web Analytics</a>, a privacy-focused analytics service, to count page visits. It does not use cookies and cannot identify you individually; it only reports aggregate numbers, like how many people visited a page, which we use to see whether Etude is worth improving.",
+      h_device:"Data stored on your device",
+      p_device_intro:"To remember your preferences, Etude saves a few things <strong>locally on your device only</strong>, using your browser's own storage (localStorage and IndexedDB). This data never leaves your browser and is not accessible to us or anyone else:",
+      li_device_1:"your theme (light or dark) and language choice;",
+      li_device_2:"your saved practice sessions and named A-B loops, including their settings;",
+      li_device_3:"for the extension, your per-video loops and control settings.",
+      p_device_clear:"You can clear this at any time by clearing your browser's site data or removing the extension.",
+      h_ext:"The browser extension",
+      p_ext_intro:"The Etude Looper extension adds a practice panel to YouTube video pages so you can transpose, change speed without changing pitch, and set A-B loops. To do this it requests:",
+      li_ext_1:"<strong>storage</strong>: to save your loops and settings locally, as described above;",
+      li_ext_2:"<strong>access to youtube.com</strong>: so it can attach its audio engine to the video you are watching and show its controls. This access is limited to YouTube, the only site the extension supports.",
+      p_ext_local:"All audio is processed locally in real time. The extension transmits nothing, and includes no remote code: all of its code, including the WebAssembly audio engine, ships inside the extension package.",
+      h_links:"Third-party links",
+      p_links:"Etude contains optional links to external sites, such as its <a href='https://github.com/onurcelep/etude' target='_blank' rel='noopener'>source code on GitHub</a> and a \"buy me a coffee\" page. If you follow those links, the destination site's own privacy policy applies. Etude itself does not share any data with them.",
+      h_children:"Children",
+      p_children:"Etude is a general-audience tool that collects no data, and is safe for use by anyone.",
+      h_changes:"Changes to this policy",
+      p_changes:"If this policy changes, the updated version will be posted on this page with a new \"last updated\" date.",
+      h_contact:"Contact",
+      p_contact:"Questions about privacy in Etude? Contact Onur Celep at <a href='mailto:onurcelep@gmail.com'>onurcelep@gmail.com</a>, or open an issue on <a href='https://github.com/onurcelep/etude' target='_blank' rel='noopener'>GitHub</a>.",
+      f_home:"home", f_source:"source"
+    },
+    tr: {
+      tag:"gizlilik politikası", h1:"Gizlilik Politikası", updated:"Son güncelleme: 7 Temmuz 2026",
+      lede:"Etude <b>hiçbir kişisel veri</b> toplamaz. Bu sitedeki her araç ve Etude tarayıcı eklentisi tamamen tarayıcında çalışır. Hesap yok, sunucu yok. Web sitesi, ziyaretleri saymak için anonim ve çerezsiz analitik kullanır; bu seni tanımlayamaz ve bir aracın içinde ne yaptığını asla görmez.",
+      callout:"Tek cümleyle: bir aracın içinde yaptığın hiçbir şey hiçbir yere gönderilmez. Dosyaların, videoların ve ayarların cihazından asla çıkmaz.",
+      h_what:"Etude nedir",
+      p_what:"Etude, çalışan müzisyenler için çevrimdışı, tarayıcı tabanlı küçük bir araç setidir; Looper (bir web uygulaması) ve çevrimiçi video için Etude Looper tarayıcı eklentisini içerir. Bu politika, etude.fyi adresindeki web sitesini ve tarayıcı eklentisini kapsar.",
+      h_collect:"Topladığımız veriler",
+      p_collect_intro:"<strong>Yalnızca anonim sayfa görüntülemeleri.</strong> Etude hiçbir kişisel bilgiyi toplamaz, iletmez, satmaz veya paylaşmaz. Özellikle:",
+      li_collect_1:"hesap ya da giriş gerektirmez;",
+      li_collect_2:"ses, video veya dosyalarını hiçbir sunucuya göndermez (tüm işlem tarayıcında, yerel olarak yapılır);",
+      li_collect_3:"çerez, parmak izi, reklam veya üçüncü taraf izleyiciler kullanmaz;",
+      li_collect_4:"tarama geçmişini okumaz veya saklamaz;",
+      li_collect_5:"tıklama, tuş vuruşu ya da herhangi bir dosya veya davranış verisi toplamaz.",
+      p_analytics:"Web sitesi, sayfa ziyaretlerini saymak için gizlilik odaklı bir analitik servisi olan <a href='https://www.cloudflare.com/web-analytics/' target='_blank' rel='noopener'>Cloudflare Web Analytics</a> kullanır. Çerez kullanmaz ve seni bireysel olarak tanımlayamaz; yalnızca bir sayfayı kaç kişinin ziyaret ettiği gibi toplam sayılar bildirir. Bunu, Etude'ü geliştirmeye değip değmediğini görmek için kullanıyoruz.",
+      h_device:"Cihazında saklanan veriler",
+      p_device_intro:"Tercihlerini hatırlamak için Etude birkaç şeyi, tarayıcının kendi depolamasını (localStorage ve IndexedDB) kullanarak <strong>yalnızca cihazında</strong> saklar. Bu veriler tarayıcından asla çıkmaz; ne biz ne de başkası erişebilir:",
+      li_device_1:"tema (açık veya koyu) ve dil seçimin;",
+      li_device_2:"kayıtlı çalışma oturumların ve adlandırılmış A-B döngülerin, ayarlarıyla birlikte;",
+      li_device_3:"eklenti için, videoya özel döngülerin ve kontrol ayarların.",
+      p_device_clear:"Bunları istediğin zaman tarayıcının site verilerini temizleyerek veya eklentiyi kaldırarak silebilirsin.",
+      h_ext:"Tarayıcı eklentisi",
+      p_ext_intro:"Etude Looper eklentisi, YouTube video sayfalarına bir çalışma paneli ekler; böylece transpoze edebilir, perdeyi değiştirmeden hızı ayarlayabilir ve A-B döngüleri kurabilirsin. Bunun için şunları ister:",
+      li_ext_1:"<strong>depolama</strong>: döngülerini ve ayarlarını, yukarıda anlatıldığı gibi yerel olarak kaydetmek için;",
+      li_ext_2:"<strong>youtube.com erişimi</strong>: ses motorunu izlediğin videoya bağlayıp kontrollerini gösterebilmek için. Bu erişim, eklentinin desteklediği tek site olan YouTube ile sınırlıdır.",
+      p_ext_local:"Tüm ses, gerçek zamanlı ve yerel olarak işlenir. Eklenti hiçbir şey iletmez ve uzaktan kod içermez: WebAssembly ses motoru dahil tüm kodu eklenti paketiyle birlikte gelir.",
+      h_links:"Üçüncü taraf bağlantılar",
+      p_links:"Etude, <a href='https://github.com/onurcelep/etude' target='_blank' rel='noopener'>GitHub'daki kaynak koduna</a> ve bir “bana kahve ısmarla” sayfasına giden isteğe bağlı dış bağlantılar içerir. Bu bağlantıları takip edersen, gittiğin sitenin kendi gizlilik politikası geçerlidir. Etude onlarla hiçbir veri paylaşmaz.",
+      h_children:"Çocuklar",
+      p_children:"Etude, veri toplamayan genel kitleye açık bir araçtır ve herkes tarafından güvenle kullanılabilir.",
+      h_changes:"Bu politikadaki değişiklikler",
+      p_changes:"Bu politika değişirse, güncel sürüm yeni bir “son güncelleme” tarihiyle bu sayfada yayımlanır.",
+      h_contact:"İletişim",
+      p_contact:"Etude'de gizlilikle ilgili soruların mı var? Onur Celep'e <a href='mailto:onurcelep@gmail.com'>onurcelep@gmail.com</a> adresinden ulaş veya <a href='https://github.com/onurcelep/etude' target='_blank' rel='noopener'>GitHub</a>'da bir konu aç.",
+      f_home:"ana sayfa", f_source:"kaynak"
+    },
+    de: {
+      tag:"Datenschutzerklärung", h1:"Datenschutzerklärung", updated:"Zuletzt aktualisiert: 7. Juli 2026",
+      lede:"Etude erfasst <b>keine personenbezogenen Daten</b>. Jedes Werkzeug auf dieser Seite und die Etude-Browser-Erweiterung laufen vollständig in deinem Browser. Es gibt keine Konten und keine Server. Die Website nutzt anonyme, cookiefreie Analytik, um Besuche zu zählen; sie kann dich nicht identifizieren und sieht nie, was du in einem Werkzeug tust.",
+      callout:"In einem Satz: Nichts, was du in einem Werkzeug tust, wird irgendwohin gesendet. Deine Dateien, Videos und Einstellungen verlassen nie dein Gerät.",
+      h_what:"Was Etude ist",
+      p_what:"Etude ist eine kleine Sammlung offline nutzbarer, browserbasierter Werkzeuge für übende Musiker, darunter der Looper (eine Web-App) und die Etude-Looper-Browser-Erweiterung für Online-Videos. Diese Erklärung gilt für die Website etude.fyi und die Browser-Erweiterung.",
+      h_collect:"Welche Daten wir erfassen",
+      p_collect_intro:"<strong>Nur anonyme Seitenaufrufe.</strong> Etude erfasst, überträgt, verkauft oder teilt keine persönlichen Informationen. Insbesondere:",
+      li_collect_1:"es verlangt kein Konto und keinen Login;",
+      li_collect_2:"es sendet deine Audio-, Video- oder sonstigen Dateien an keinen Server (die gesamte Verarbeitung findet lokal in deinem Browser statt);",
+      li_collect_3:"es nutzt keine Cookies, kein Fingerprinting, keine Werbung und keine Tracker von Drittanbietern;",
+      li_collect_4:"es liest oder speichert deinen Browserverlauf nicht;",
+      li_collect_5:"es erfasst keine Klicks, Tastatureingaben oder sonstige Datei- oder Verhaltensdaten.",
+      p_analytics:"Die Website nutzt <a href='https://www.cloudflare.com/web-analytics/' target='_blank' rel='noopener'>Cloudflare Web Analytics</a>, einen datenschutzfreundlichen Analysedienst, um Seitenaufrufe zu zählen. Er verwendet keine Cookies und kann dich nicht individuell identifizieren; er liefert nur aggregierte Zahlen, etwa wie viele Personen eine Seite besucht haben. Wir nutzen sie, um zu sehen, ob sich die Weiterentwicklung von Etude lohnt.",
+      h_device:"Auf deinem Gerät gespeicherte Daten",
+      p_device_intro:"Um deine Einstellungen zu merken, speichert Etude einige Dinge <strong>ausschließlich lokal auf deinem Gerät</strong>, im Speicher deines Browsers (localStorage und IndexedDB). Diese Daten verlassen deinen Browser nie und sind weder für uns noch für andere zugänglich:",
+      li_device_1:"dein Theme (hell oder dunkel) und deine Sprachwahl;",
+      li_device_2:"deine gespeicherten Übungssitzungen und benannten A-B-Loops samt Einstellungen;",
+      li_device_3:"für die Erweiterung: deine Loops und Reglereinstellungen je Video.",
+      p_device_clear:"Du kannst das jederzeit löschen, indem du die Website-Daten deines Browsers löschst oder die Erweiterung entfernst.",
+      h_ext:"Die Browser-Erweiterung",
+      p_ext_intro:"Die Etude-Looper-Erweiterung fügt YouTube-Videoseiten ein Übungspanel hinzu, mit dem du transponieren, das Tempo ohne Tonhöhenänderung anpassen und A-B-Loops setzen kannst. Dafür benötigt sie:",
+      li_ext_1:"<strong>Speicher</strong>: um deine Loops und Einstellungen lokal zu sichern, wie oben beschrieben;",
+      li_ext_2:"<strong>Zugriff auf youtube.com</strong>: damit sie ihre Audio-Engine mit dem laufenden Video verbinden und ihre Bedienelemente anzeigen kann. Dieser Zugriff ist auf YouTube beschränkt, die einzige Seite, die die Erweiterung unterstützt.",
+      p_ext_local:"Sämtliche Audiodaten werden lokal in Echtzeit verarbeitet. Die Erweiterung überträgt nichts und enthält keinen Remote-Code: ihr gesamter Code, einschließlich der WebAssembly-Audio-Engine, wird im Erweiterungspaket mitgeliefert.",
+      h_links:"Links zu Dritten",
+      p_links:"Etude enthält optionale Links zu externen Seiten, etwa zum <a href='https://github.com/onurcelep/etude' target='_blank' rel='noopener'>Quellcode auf GitHub</a> und zu einer „Spendier mir einen Kaffee“-Seite. Folgst du diesen Links, gilt die Datenschutzerklärung der jeweiligen Seite. Etude selbst teilt keine Daten mit ihnen.",
+      h_children:"Kinder",
+      p_children:"Etude ist ein Werkzeug, das keine Daten erfasst, richtet sich an ein allgemeines Publikum und kann von allen sicher genutzt werden.",
+      h_changes:"Änderungen an dieser Erklärung",
+      p_changes:"Ändert sich diese Erklärung, wird die aktualisierte Fassung mit einem neuen „zuletzt aktualisiert“-Datum auf dieser Seite veröffentlicht.",
+      h_contact:"Kontakt",
+      p_contact:"Fragen zum Datenschutz bei Etude? Schreib Onur Celep an <a href='mailto:onurcelep@gmail.com'>onurcelep@gmail.com</a> oder eröffne ein Issue auf <a href='https://github.com/onurcelep/etude' target='_blank' rel='noopener'>GitHub</a>.",
+      f_home:"Startseite", f_source:"Quelltext"
+    }
+  };
+  let lang = 'en';
+  function t(k, vars) {
+    let s = (I18N[lang] && I18N[lang][k] != null) ? I18N[lang][k] : (I18N.en[k] != null ? I18N.en[k] : k);
+    if (vars) for (const p in vars) s = s.split('{' + p + '}').join(vars[p]);
+    return s;
+  }
+  function applyLang() {
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+    document.documentElement.lang = lang;
+    const ls = $('langSel'); if (ls) ls.value = lang;
+  }
+  function setLang(l) { lang = I18N[l] ? l : 'en'; try { localStorage.setItem('etude.lang', lang); } catch (e) {} applyLang(); }
+
   const SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.6v2.2M12 19.2v2.2M2.6 12h2.2M19.2 12h2.2M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M18.9 5.1l-1.6 1.6M6.7 17.3l-1.6 1.6"/></svg>';
   const MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8 8 0 0 1 9.4 4 7 7 0 1 0 20 14.6z"/></svg>';
   function applyTheme(t){
@@ -133,6 +260,16 @@
     localStorage.setItem('etude.theme', next); applyTheme(next);
   };
   applyTheme(document.documentElement.getAttribute('data-theme') || 'dark');
+
+  /* ---- language: auto-detect from browser, remember manual choice ---- */
+  try {
+    const stored = localStorage.getItem('etude.lang');
+    const nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    lang = stored || (I18N[nav] ? nav : 'en');
+  } catch (e) { lang = 'en'; }
+  if (!I18N[lang]) lang = 'en';
+  $('langSel').onchange = () => setLang($('langSel').value);
+  applyLang();
 
   /* reveal the intro group (staggered) + each section heading as it scrolls in */
   (function(){
