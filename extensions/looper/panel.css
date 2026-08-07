@@ -54,7 +54,8 @@
 .et-row{display:grid;grid-template-columns:1fr 22px 52px 22px 16px;gap:5px;align-items:center;margin:6px 0}
 .et-row .et-lab{color:var(--et-mut);font-size:11.5px;text-transform:lowercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .et-valwrap{display:flex;align-items:baseline;justify-content:center;gap:3px}
-.et-row .et-val{font-family:var(--et-mono);font-variant-numeric:tabular-nums;color:var(--et-accent)}
+.et-row .et-val{font-family:var(--et-mono);font-variant-numeric:tabular-nums;color:var(--et-accent);cursor:text}
+.et-valwrap .et-valin{width:4ch;font-family:var(--et-mono);font-variant-numeric:tabular-nums;font-size:inherit;color:var(--et-accent);background:transparent;border:none;border-bottom:1px solid var(--et-accent);outline:none;text-align:center;padding:0;margin:0}
 .et-row .et-unit{color:var(--et-faint);font-size:11px}
 .et-row.et-off{opacity:.4;pointer-events:none}
 .et-step{width:22px;height:22px;border:1px solid var(--et-line);border-radius:6px;color:var(--et-ink);

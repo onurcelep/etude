@@ -204,7 +204,8 @@
   .row .step{width:22px;height:22px;border:none;background:transparent;color:var(--mut);font-size:15px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm)}
   .row .step:hover{color:var(--accent);background:var(--paper-2)}
   .row .readout{display:inline-flex;align-items:baseline;gap:5px;justify-self:start}
-  .row .val{font-variant-numeric:tabular-nums;color:var(--ink);font-size:13px}
+  .row .val{font-variant-numeric:tabular-nums;color:var(--ink);font-size:13px;cursor:text}
+  .row .valin{width:4ch;font:inherit;font-variant-numeric:tabular-nums;color:var(--ink);font-size:13px;background:transparent;border:none;border-bottom:1px solid var(--accent);outline:none;text-align:right;padding:0}
   .row .unit{color:var(--faint);font-size:11px}
   .row .reset{margin-left:0;width:20px;height:20px;padding:0;font-size:14px;line-height:1;color:var(--faint);border:0;background:transparent;border-radius:var(--r-sm);cursor:pointer;visibility:hidden}
   .row .reset.show{visibility:visible}
@@ -390,6 +391,7 @@
   [data-theme="dark"] .pitchcard input[type=range]::-webkit-slider-thumb{width:16px;height:16px;background:var(--accent);
     border:2px solid #17161c;box-shadow:0 1px 4px rgba(0,0,0,.6),0 0 8px rgba(230,169,74,.4)}
   [data-theme="dark"] .pitchcard .row .val{font-family:var(--mono);font-size:15px;color:var(--accent)}
+  [data-theme="dark"] .pitchcard .row .valin{font-family:var(--mono);font-size:15px;color:var(--accent)}
   [data-theme="dark"] .pitchcard .row .unit{font-family:var(--mono)}
 
   /* memory bank → recall pads (M1, M2 … from the shared CSS counter) */
@@ -546,7 +548,7 @@
             <button class="step" data-delta="trans:-1">&minus;</button>
             <input id="trans" type="range" min="-12" max="12" step="1" value="0" />
             <button class="step" data-delta="trans:1">+</button>
-            <span class="readout"><span class="val" id="transV">0</span><span class="unit">st</span></span>
+            <span class="readout"><span class="val" id="transV" data-i18n-title="type_val">0</span><span class="unit">st</span></span>
             <button class="reset" data-reset="trans" title="Reset to default">↺</button>
           </div>
           <div class="row">
@@ -554,15 +556,15 @@
             <button class="step" data-delta="pitch:-5">&minus;</button>
             <input id="pitch" type="range" min="-100" max="100" step="1" value="0" />
             <button class="step" data-delta="pitch:5">+</button>
-            <span class="readout"><span class="val" id="pitchV">0</span><span class="unit">&cent;</span></span>
+            <span class="readout"><span class="val" id="pitchV" data-i18n-title="type_val">0</span><span class="unit">&cent;</span></span>
             <button class="reset" data-reset="pitch" title="Reset to default">↺</button>
           </div>
           <div class="row">
             <span class="lab" data-i18n="speed_lab">Speed</span>
             <button class="step" data-delta="speed:-5">&minus;</button>
-            <input id="speed" type="range" min="25" max="175" step="5" value="100" />
+            <input id="speed" type="range" min="25" max="175" step="1" value="100" />
             <button class="step" data-delta="speed:5">+</button>
-            <span class="readout"><span class="val" id="speedV">100</span><span class="unit">%</span></span>
+            <span class="readout"><span class="val" id="speedV" data-i18n-title="type_val">100</span><span class="unit">%</span></span>
             <button class="reset" data-reset="speed" title="Reset to default">↺</button>
           </div>
           </div>
@@ -629,6 +631,7 @@ const I18N = {
     pitch_speed:"Audio & Speed", transpose:"Transpose", pitch_lab:"Pitch", speed_lab:"Speed",
     reset:"reset", keep_pitch:"keep pitch", install_app:"install app", a2hs:"Add Etude Looper to your home screen", a2hs_add:"install",
     privacy:"privacy", get_ext:"YouTube video", get_ext_title:"Loop, slow down & transpose YouTube and other online video with the browser extension",
+    type_val:"click to type an exact value",
     install_title:"Install Etude", saved_sessions:"Saved sessions",
     hint_none:"Set a start point (A) and an end point (B) to mark a section, then press the loop button to repeat it.",
     hint_a:"Start set at {a}. Now play to the end and press “set” on B.",
@@ -652,6 +655,7 @@ const I18N = {
     pitch_speed:"Ses & Hız", transpose:"Transpose", pitch_lab:"İnce Akort", speed_lab:"Hız",
     reset:"sıfırla", keep_pitch:"akordu koru", install_app:"uygulamayı yükle", a2hs:"Etude Looper'ı ana ekrana ekle", a2hs_add:"yükle",
     privacy:"gizlilik", get_ext:"YouTube videosu", get_ext_title:"YouTube ve diğer çevrimiçi videoları tarayıcı eklentisiyle döngüle, yavaşlat ve transpoze et",
+    type_val:"tam değeri yazmak için tıkla",
     install_title:"Etude’ü yükle", saved_sessions:"Kayıtlı oturumlar",
     hint_none:"Bir bölümü işaretlemek için başlangıç (A) ve bitiş (B) noktası koy, sonra tekrarlamak için döngü düğmesine bas.",
     hint_a:"Başlangıç {a} olarak ayarlandı. Şimdi sona kadar çal ve B için “ayarla”ya bas.",
@@ -675,6 +679,7 @@ const I18N = {
     pitch_speed:"Audio & Tempo", transpose:"Transponieren", pitch_lab:"Tonhöhe", speed_lab:"Tempo",
     reset:"zurücksetzen", keep_pitch:"Tonhöhe halten", install_app:"App installieren", a2hs:"Etude Looper zum Startbildschirm hinzufügen", a2hs_add:"installieren",
     privacy:"Datenschutz", get_ext:"YouTube-Video", get_ext_title:"YouTube und andere Online-Videos mit der Browser-Erweiterung loopen, verlangsamen und transponieren",
+    type_val:"klicken und genauen Wert eingeben",
     install_title:"Etude installieren", saved_sessions:"Gespeicherte Sitzungen",
     hint_none:"Setze einen Startpunkt (A) und einen Endpunkt (B), um einen Abschnitt zu markieren, und drücke dann die Loop-Taste zum Wiederholen.",
     hint_a:"Start bei {a} gesetzt. Spiele jetzt bis zum Ende und drücke bei B auf „setzen“.",
@@ -1177,6 +1182,31 @@ document.querySelectorAll('[data-reset]').forEach(b => b.onclick = () => {
 });
 ['trans','pitch'].forEach(id => $(id).oninput = () => { applyPitchLabels(); applyPitch(); persist(); });
 $('speed').oninput = () => { applySpeed(); persist(); };
+// Click a value readout to type an exact number (e.g. speed 97%). Enter/blur commits, Esc cancels.
+// All three range inputs use step=1 so typed values survive: range value sanitization snaps
+// assigned values to the step grid, so a coarser step would silently round e.g. 97 to 95.
+['trans', 'pitch', 'speed'].forEach(id => {
+  const sp = $(id + 'V');
+  sp.onclick = () => {
+    if (sp.style.display === 'none') return;
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.inputMode = 'numeric'; inp.autocomplete = 'off'; inp.className = 'valin';
+    inp.value = $(id).value;
+    inp.oninput = () => { inp.value = inp.value.replace(/[^\d-]/g, '').replace(/(?!^)-/g, ''); };
+    const done = commit => {
+      inp.remove(); sp.style.display = '';
+      if (commit && inp.value !== '' && inp.value !== '-') clampSet(id, parseInt(inp.value, 10));
+    };
+    inp.onblur = () => done(true);
+    inp.onkeydown = e => {
+      if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
+      else if (e.key === 'Escape') { inp.onblur = null; done(false); }
+    };
+    sp.style.display = 'none';
+    sp.parentNode.insertBefore(inp, sp);
+    inp.focus(); inp.select();
+  };
+});
 $('keepPitch').onchange = () => { applyKeepPitch(); persist(); };
 
 function updateResets() { document.querySelectorAll('[data-reset]').forEach(b => { const id = b.dataset.reset; b.classList.toggle('show', (+$(id).value) !== DEF[id]); }); markActive(); }
