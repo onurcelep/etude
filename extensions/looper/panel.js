@@ -9,6 +9,7 @@ globalThis.EtudePanel = (() => {
           save_loop: 'save loop', saved: 'saved loops',
           bypass: 'bypass', reset: 'reset', del: 'delete',
           local_looper: 'open local file', coffee: 'buy me coffee',
+          type_val: 'click to type an exact value',
           hidden_hint: 'Etude is hidden. Click the puzzle icon in your browser toolbar to bring it back.',
           no_audio: 'Cannot process this audio here. Speed and loop still work.',
           no_engine: 'Pitch engine unavailable. Speed and loop still work.' },
@@ -17,6 +18,7 @@ globalThis.EtudePanel = (() => {
           save_loop: 'döngüyü kaydet', saved: 'kayıtlı döngüler',
           bypass: 'bypass', reset: 'sıfırla', del: 'sil',
           local_looper: 'lokal dosya aç', coffee: 'destek ol',
+          type_val: 'tam değeri yazmak için tıkla',
           hidden_hint: 'Etude gizlendi. Geri getirmek için tarayıcı araç çubuğundaki yapboz simgesine tıklayın.',
           no_audio: 'Bu ses burada işlenemiyor. Hız ve döngü çalışmaya devam eder.',
           no_engine: 'Ses motoru kullanılamıyor. Hız ve döngü çalışmaya devam eder.' },
@@ -25,6 +27,7 @@ globalThis.EtudePanel = (() => {
           save_loop: 'loop speichern', saved: 'gespeicherte loops',
           bypass: 'Bypass', reset: 'zurücksetzen', del: 'löschen',
           local_looper: 'lokale Datei öffnen', coffee: 'unterstützen',
+          type_val: 'klicken und genauen Wert eingeben',
           hidden_hint: 'Etude ist ausgeblendet. Klicke auf das Puzzle-Symbol in der Symbolleiste, um es zurückzuholen.',
           no_audio: 'Dieser Ton kann hier nicht verarbeitet werden. Tempo und Loop funktionieren weiter.',
           no_engine: 'Audio-Engine nicht verfügbar. Tempo und Loop funktionieren weiter.' }
@@ -90,14 +93,42 @@ globalThis.EtudePanel = (() => {
     const plus = el('button', 'et-step', '+');
     const rst = el('button', 'et-rst', '↺');    // per-parameter reset, shown only when off default
     trReg(() => rst.title = t('reset'));
+    trReg(() => val.title = t('type_val'));
     minus.onclick = () => { emit('onOpen'); set(clamp(get() - step, lo, hi)); };
     plus.onclick = () => { emit('onOpen'); set(clamp(get() + step, lo, hi)); };
     rst.onclick = () => { emit('onOpen'); set(def); };
+    // Click the value to type an exact number (e.g. speed 97%). Enter/blur commits, Esc cancels.
+    let edit = null;   // open inline editor; dropped by _cancelEdit when state changes from outside the panel (e.g. video navigation resets the controls)
+    val.onclick = () => {
+      emit('onOpen');
+      const inp = el('input', 'et-valin');
+      inp.type = 'text'; inp.inputMode = 'numeric'; inp.autocomplete = 'off';
+      inp.value = String(get());
+      inp.oninput = () => { inp.value = inp.value.replace(/[^\d-]/g, '').replace(/(?!^)-/g, ''); };
+      const done = commit => {
+        edit = null; inp.remove(); val.style.display = '';
+        if (commit && inp.value !== '' && inp.value !== '-') set(clamp(parseInt(inp.value, 10), lo, hi));
+      };
+      edit = { cancel: () => { inp.onblur = null; done(false); } };
+      inp.onblur = () => done(true);
+      // Swallow key events so typing digits doesn't trigger the host page's shortcuts (YouTube seeks on 0-9).
+      inp.onkeyup = e => e.stopPropagation();
+      inp.onkeypress = e => e.stopPropagation();
+      inp.onkeydown = e => {
+        e.stopPropagation();
+        if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
+        else if (e.key === 'Escape') { inp.onblur = null; done(false); }
+      };
+      val.style.display = 'none';
+      vw.insertBefore(inp, un);
+      inp.focus(); inp.select();
+    };
     row.append(minus, vw, plus, rst);
     row._update = () => {
       val.textContent = String(get());
       rst.style.visibility = get() === def ? 'hidden' : 'visible';
     };
+    row._cancelEdit = () => { if (edit) edit.cancel(); };
     return row;
   }
 
@@ -426,6 +457,11 @@ globalThis.EtudePanel = (() => {
   return {
     mount, t, formatTime, setVisible, setChipPos, toast, setLang,
     on(handlers) { H = handlers || {}; },
-    setState(partial) { Object.assign(state, partial); render(); }
+    setState(partial) {
+      // State arriving from outside the panel makes any in-progress typed draft stale: drop it
+      // before rendering, or its eventual blur would commit an old value onto the new state.
+      ['transpose', 'pitch', 'speed'].forEach(k => rows[k] && rows[k]._cancelEdit());
+      Object.assign(state, partial); render();
+    }
   };
 })();
