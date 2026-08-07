@@ -149,7 +149,7 @@ globalThis.EtudePanel = (() => {
     const brandWrap = el('div', 'et-brandwrap');
     const brandLine = el('div', 'et-brandline');
     const brand = el('a', 'et-brand', '𝄆 Étude 𝄇');   // the logo links to the Etude landing page
-    brand.href = 'https://onurcelep.github.io/etude/?theme=dark';   // arrive in the Console (dark) identity
+    brand.href = 'https://etude.fyi/?theme=dark';   // arrive in the Console (dark) identity
     brand.target = '_blank'; brand.rel = 'noopener'; brand.title = 'Etude';
     brandLine.appendChild(brand);
     brandLine.appendChild(el('span', 'et-subapp', 'Looper'));   // Etude is the umbrella; this is the Looper
@@ -335,7 +335,7 @@ globalThis.EtudePanel = (() => {
     const foot = el('div', 'et-foot');
     const looper = el('a', 'et-feat');
     trReg(() => looper.textContent = '📂 ' + t('local_looper'));
-    looper.href = 'https://onurcelep.github.io/etude/looper/?theme=dark';   // match the extension's dark Console look
+    looper.href = 'https://etude.fyi/looper/?theme=dark';   // match the extension's dark Console look
     looper.target = '_blank'; looper.rel = 'noopener';
     const coffee = el('a', 'et-supportlink');
     trReg(() => coffee.textContent = '☕ ' + t('coffee'));
