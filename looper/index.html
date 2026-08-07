@@ -941,6 +941,7 @@ async function openFromHistory(id) {
 }
 
 function applySession() {
+  cancelValEdits();   // a new session replaces the values: an in-progress typed draft is stale, drop it before it can commit
   $('trans').value = cur.trans || 0;
   $('pitch').value = cur.pitch || 0;
   $('speed').value = cur.speed || 100;
@@ -1185,6 +1186,11 @@ $('speed').oninput = () => { applySpeed(); persist(); };
 // Click a value readout to type an exact number (e.g. speed 97%). Enter/blur commits, Esc cancels.
 // All three range inputs use step=1 so typed values survive: range value sanitization snaps
 // assigned values to the step grid, so a coarser step would silently round e.g. 97 to 95.
+// Open editors register a cancel handle in valEdits; applySession() drops them, because a
+// session load (notably drag-and-drop, which never blurs the input) replaces the values and
+// a stale draft's eventual blur would commit an old number onto the new session.
+const valEdits = {};
+function cancelValEdits() { Object.keys(valEdits).forEach(id => valEdits[id]()); }
 ['trans', 'pitch', 'speed'].forEach(id => {
   const sp = $(id + 'V');
   sp.onclick = () => {
@@ -1194,9 +1200,10 @@ $('speed').oninput = () => { applySpeed(); persist(); };
     inp.value = $(id).value;
     inp.oninput = () => { inp.value = inp.value.replace(/[^\d-]/g, '').replace(/(?!^)-/g, ''); };
     const done = commit => {
-      inp.remove(); sp.style.display = '';
+      delete valEdits[id]; inp.remove(); sp.style.display = '';
       if (commit && inp.value !== '' && inp.value !== '-') clampSet(id, parseInt(inp.value, 10));
     };
+    valEdits[id] = () => { inp.onblur = null; done(false); };
     inp.onblur = () => done(true);
     inp.onkeydown = e => {
       if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
